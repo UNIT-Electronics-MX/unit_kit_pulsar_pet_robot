@@ -438,6 +438,7 @@
     let lastEmotionBtn = null;
     let lastActionBtn  = null;
     let deferredInstallPrompt = null;
+    let installMode = 'none';
 
     // ---- LOG ----
     function addLog(msg, type = 'info') {
@@ -532,15 +533,25 @@
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
       deferredInstallPrompt = event;
+      installMode = 'prompt';
       installPwaBtn.classList.remove('hidden');
       addLog('Puedes instalar la app desde el boton "Instalar app"', 'info');
     });
 
     installPwaBtn.addEventListener('click', async () => {
-      if (!deferredInstallPrompt) return;
+      if (installMode === 'ios') {
+        addLog('iPhone: pulsa Compartir y luego "Agregar a inicio"', 'info');
+        return;
+      }
+
+      if (!deferredInstallPrompt) {
+        addLog('Instalacion no disponible aun en este navegador', 'warn');
+        return;
+      }
+
       deferredInstallPrompt.prompt();
       const choice = await deferredInstallPrompt.userChoice;
-      if (choice.outcome === 'accepted') {
+      if (choice && choice.outcome === 'accepted') {
         addLog('Instalacion aceptada', 'ok');
       } else {
         addLog('Instalacion cancelada', 'warn');
@@ -567,7 +578,10 @@
       // Registrar Service Worker (PWA)
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
-          .then(() => addLog('PWA lista para uso offline', 'info'))
+          .then((reg) => {
+            reg.update();
+            addLog('PWA lista para uso offline', 'info');
+          })
           .catch(() => {});
       }
 
@@ -575,7 +589,13 @@
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
       const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
       if (isIOS && !isStandalone) {
+        installMode = 'ios';
+        installPwaBtn.classList.remove('hidden');
         addLog('En iPhone: Compartir -> "Agregar a inicio" para instalar', 'info');
+      }
+
+      if (!window.isSecureContext) {
+        addLog('Instalacion PWA requiere HTTPS (o localhost)', 'warn');
       }
     });
   </script>

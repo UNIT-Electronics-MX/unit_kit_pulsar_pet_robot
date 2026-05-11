@@ -1,12 +1,14 @@
 // Pulsar C6 - Service Worker
-const CACHE_NAME = 'pulsar-c6-v1';
+const CACHE_NAME = 'pulsar-c6-v2';
 
 // Archivos a cachear para uso offline
 const ASSETS = [
   './',
   './index.html',
   './script-pulsar-c6-ble.js',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // Instalar: cachear assets estáticos
