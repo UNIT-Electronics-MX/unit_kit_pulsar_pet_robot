@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulsar C6 - Control BLE</title>
+  <meta name="description" content="Control del Pulsar C6 Pet Robot via Bluetooth Web">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-connected { background-color: #10b981; }
+    .status-connecting { background-color: #f59e0b; animation: pulse 2s infinite; }
+    .status-disconnected { background-color: #ef4444; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .cmd-button {
+      transition: all 0.3s ease;
+    }
+    
+    .cmd-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .cmd-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .section {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1f2937;
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .log-entry {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      padding: 4px 8px;
+      margin: 2px 0;
+      border-radius: 4px;
+      background: #f3f4f6;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Pulsar C6</h1>
+          <p class="text-sm text-gray-600">Pet Robot - Control por BLE</p>
+        </div>
+        
+        <!-- Connection Status -->
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <span class="status-indicator status-disconnected" id="status-indicator"></span>
+            <div class="text-right">
+              <div id="connection-status" class="text-sm font-medium text-red-600">Desconectado</div>
+              <div id="device-name" class="text-xs text-gray-500">---</div>
+            </div>
+          </div>
+          
+          <!-- Connection Buttons -->
+          <div class="flex space-x-2">
+            <button id="connect-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              Conectar BLE
+            </button>
+            <button id="disconnect-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors hidden">
+              Desconectar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- Status Section -->
+    <div class="section">
+      <div class="section-title">Estado del Dispositivo</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="text-sm text-gray-600">Emoción Actual</div>
+          <div id="current-emotion" class="text-2xl font-bold text-blue-600">---</div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="text-sm text-gray-600">Acción Actual</div>
+          <div id="current-action" class="text-2xl font-bold text-green-600">---</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emotions Section -->
+    <div class="section">
+      <div class="section-title">🎭 Emociones</div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <button class="cmd-button bg-yellow-100 hover:bg-yellow-200 text-yellow-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('happy')" disabled>
+          😊 Happy
+        </button>
+        <button class="cmd-button bg-purple-100 hover:bg-purple-200 text-purple-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('sleepy')" disabled>
+          😴 Sleepy
+        </button>
+        <button class="cmd-button bg-blue-100 hover:bg-blue-200 text-blue-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('surprised')" disabled>
+          😲 Surprised
+        </button>
+        <button class="cmd-button bg-pink-100 hover:bg-pink-200 text-pink-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('wink')" disabled>
+          😉 Wink
+        </button>
+        <button class="cmd-button bg-red-100 hover:bg-red-200 text-red-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('angry')" disabled>
+          😠 Angry
+        </button>
+      </div>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="section">
+      <div class="section-title">🦵 Acciones</div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <button class="cmd-button bg-green-100 hover:bg-green-200 text-green-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('standup')" disabled>
+          📍 Stand Up
+        </button>
+        <button class="cmd-button bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('sit')" disabled>
+          🪑 Sit Down
+        </button>
+        <button class="cmd-button bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('sleep')" disabled>
+          🛏️ Sleep
+        </button>
+        <button class="cmd-button bg-orange-100 hover:bg-orange-200 text-orange-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('wave')" disabled>
+          👋 Wave
+        </button>
+        <button class="cmd-button bg-cyan-100 hover:bg-cyan-200 text-cyan-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('walk')" disabled>
+          🚶 Walk
+        </button>
+        <button class="cmd-button bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+                onclick="sendCommand('stop')" disabled>
+          ⏹️ Stop
+        </button>
+      </div>
+    </div>
+
+    <!-- Device Info Section -->
+    <div class="section">
+      <div class="section-title">ℹ️ Información del Dispositivo</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-gray-50 p-3 rounded-lg">
+          <div class="text-xs text-gray-500 font-mono">Service UUID</div>
+          <div class="text-sm font-mono text-gray-900 break-all">4fafc201-1fb5-459e-8fcc-c5c9c331914b</div>
+        </div>
+        <div class="bg-gray-50 p-3 rounded-lg">
+          <div class="text-xs text-gray-500 font-mono">Characteristic UUID</div>
+          <div class="text-sm font-mono text-gray-900 break-all">beb5483e-36e1-4688-b7f5-ea07361b26a8</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log Section -->
+    <div class="section">
+      <div class="section-title">📋 Log de Actividad</div>
+      <button onclick="clearLog()" class="mb-2 bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-1 rounded text-sm">
+        Limpiar
+      </button>
+      <div id="log-container" class="bg-gray-900 text-green-400 p-4 rounded-lg h-48 overflow-y-auto font-mono text-xs">
+        <div class="log-entry">Esperando conexión...</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="script-pulsar-c6-ble.js"></script>
+  <script>
+    // Referencias DOM
+    const connectBtn = document.getElementById('connect-btn');
+    const disconnectBtn = document.getElementById('disconnect-btn');
+    const statusIndicator = document.getElementById('status-indicator');
+    const connectionStatus = document.getElementById('connection-status');
+    const deviceName = document.getElementById('device-name');
+    const logContainer = document.getElementById('log-container');
+    const currentEmotion = document.getElementById('current-emotion');
+    const currentAction = document.getElementById('current-action');
+    const commandButtons = document.querySelectorAll('.cmd-button');
+
+    // Instancia del robot
+    let robot = null;
+
+    // ========================================
+    // LOGGING
+    // ========================================
+    function addLog(message) {
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.textContent = message;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    function clearLog() {
+      logContainer.innerHTML = '<div class="log-entry">Log limpiado</div>';
+    }
+
+    // ========================================
+    // UI STATE
+    // ========================================
+    function updateUIState(connected) {
+      if (connected) {
+        statusIndicator.className = 'status-indicator status-connected';
+        connectionStatus.textContent = 'Conectado';
+        connectionStatus.className = 'text-sm font-medium text-green-600';
+        connectBtn.classList.add('hidden');
+        disconnectBtn.classList.remove('hidden');
+        commandButtons.forEach(btn => btn.disabled = false);
+      } else {
+        statusIndicator.className = 'status-indicator status-disconnected';
+        connectionStatus.textContent = 'Desconectado';
+        connectionStatus.className = 'text-sm font-medium text-red-600';
+        deviceName.textContent = '---';
+        connectBtn.classList.remove('hidden');
+        disconnectBtn.classList.add('hidden');
+        commandButtons.forEach(btn => btn.disabled = true);
+        currentEmotion.textContent = '---';
+        currentAction.textContent = '---';
+      }
+    }
+
+    // ========================================
+    // BLE CONTROL
+    // ========================================
+    async function connectBLE() {
+      const connected = await robot.connect();
+      if (connected) {
+        const status = robot.getStatus();
+        deviceName.textContent = status.deviceName || 'Pulsar C6';
+        updateUIState(true);
+      } else {
+        updateUIState(false);
+      }
+    }
+
+    function disconnectBLE() {
+      robot.disconnect();
+      updateUIState(false);
+    }
+
+    async function sendCommand(command) {
+      if (!robot.isConnected) {
+        addLog('❌ No conectado');
+        return;
+      }
+
+      const ok = await robot.sendCommand(command);
+      if (ok) {
+        // Actualizar estado local
+        if (PulsarC6BLE.isEmotion(command)) {
+          currentEmotion.textContent = command;
+        }
+        if (PulsarC6BLE.isAction(command)) {
+          currentAction.textContent = command;
+        }
+      }
+    }
+
+    // ========================================
+    // EVENT LISTENERS
+    // ========================================
+    connectBtn.addEventListener('click', connectBLE);
+    disconnectBtn.addEventListener('click', disconnectBLE);
+
+    // ========================================
+    // INIT
+    // ========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Crear instancia del robot con callbacks
+      robot = new PulsarC6BLE({
+        onLog: addLog,
+        onConnected: () => {
+          updateUIState(true);
+          const status = robot.getStatus();
+          deviceName.textContent = status.deviceName || 'Pulsar C6';
+        },
+        onDisconnected: () => {
+          updateUIState(false);
+          addLog('⚠️ Desconexión del dispositivo');
+        },
+        onError: (msg) => {
+          addLog(`❌ ${msg}`);
+        }
+      });
+
+      updateUIState(false);
+      addLog('Página cargada. Haz clic en "Conectar BLE" para empezar.');
+    });
+  </script>
+</body>
+</html>
