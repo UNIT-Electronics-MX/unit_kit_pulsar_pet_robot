@@ -294,6 +294,35 @@
     .uuid-label { color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
     .uuid-val { color: #64748b; word-break: break-all; }
 
+    /* ---- PWA Install CTA ---- */
+    .install-cta {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 70;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: #ffffff;
+      background: linear-gradient(135deg, #7c3aed, #6366f1);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .install-cta:active {
+      transform: scale(0.96);
+    }
+
+    .install-cta:hover {
+      box-shadow: 0 10px 26px rgba(99, 102, 241, 0.45);
+      transform: translateY(-1px);
+    }
+
     /* ---- Hidden ---- */
     .hidden { display: none !important; }
   </style>
@@ -389,6 +418,8 @@
 
   </main>
 
+  <button id="install-pwa-btn" class="install-cta hidden" type="button">Instalar app</button>
+
   <script src="script-pulsar-c6-ble.js"></script>
   <script>
     const connectBtn    = document.getElementById('connect-btn');
@@ -401,10 +432,12 @@
     const currentEmotion = document.getElementById('current-emotion');
     const currentAction  = document.getElementById('current-action');
     const allCmdBtns     = document.querySelectorAll('.cmd-btn');
+    const installPwaBtn  = document.getElementById('install-pwa-btn');
 
     let robot = null;
     let lastEmotionBtn = null;
     let lastActionBtn  = null;
+    let deferredInstallPrompt = null;
 
     // ---- LOG ----
     function addLog(msg, type = 'info') {
@@ -496,6 +529,31 @@
     connectBtn.addEventListener('click', connectBLE);
     disconnectBtn.addEventListener('click', disconnectBLE);
 
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installPwaBtn.classList.remove('hidden');
+      addLog('Puedes instalar la app desde el boton "Instalar app"', 'info');
+    });
+
+    installPwaBtn.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        addLog('Instalacion aceptada', 'ok');
+      } else {
+        addLog('Instalacion cancelada', 'warn');
+      }
+      deferredInstallPrompt = null;
+      installPwaBtn.classList.add('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      installPwaBtn.classList.add('hidden');
+      addLog('App instalada correctamente', 'ok');
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
       robot = new PulsarC6BLE({
         onLog: msg => addLog(msg, 'info'),
@@ -511,6 +569,13 @@
         navigator.serviceWorker.register('./sw.js')
           .then(() => addLog('PWA lista para uso offline', 'info'))
           .catch(() => {});
+      }
+
+      // iOS Safari no dispara beforeinstallprompt; mostrar guia breve.
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+      if (isIOS && !isStandalone) {
+        addLog('En iPhone: Compartir -> "Agregar a inicio" para instalar', 'info');
       }
     });
   </script>
