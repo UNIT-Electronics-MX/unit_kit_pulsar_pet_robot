@@ -517,6 +517,7 @@
     let lastActionBtn  = null;
     let deferredInstallPrompt = null;
     let installMode = 'none';
+    const SW_VERSION = 'v3';
 
     // ---- LOG ----
     function addLog(msg, type = 'info') {
@@ -690,7 +691,7 @@
 
       // Registrar Service Worker (PWA)
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register(`./sw.js?${SW_VERSION}`)
           .then((reg) => {
             reg.update();
             addLog('PWA lista para uso offline', 'info');

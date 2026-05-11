@@ -1,5 +1,5 @@
 // Pulsar C6 - Service Worker
-const CACHE_NAME = 'pulsar-c6-v2';
+const CACHE_NAME = 'pulsar-c6-v3';
 
 // Archivos a cachear para uso offline
 const ASSETS = [
@@ -31,11 +31,30 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: cache-first para assets, network-first para todo lo demás
+// Fetch:
+// - Navegaciones/HTML: network-first para reflejar cambios rapido.
+// - Assets: cache-first con fallback a red.
 self.addEventListener('fetch', event => {
   // No interceptar peticiones BLE ni externas (Tailwind CDN, Google Fonts)
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+
+  const isNavigation = event.request.mode === 'navigate';
+
+  if (isNavigation) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then(cached => {
