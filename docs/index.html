@@ -67,6 +67,61 @@
       flex-shrink: 0;
     }
 
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hamburger-btn {
+      display: none;
+      width: 38px;
+      height: 38px;
+      border: 1.5px solid #ddd6fe;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #7c3aed;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-menu {
+      position: fixed;
+      top: 64px;
+      right: 12px;
+      z-index: 65;
+      width: min(240px, calc(100vw - 24px));
+      background: #ffffff;
+      border: 1.5px solid #ddd6fe;
+      border-radius: 14px;
+      box-shadow: 0 10px 28px rgba(124, 58, 237, 0.18);
+      padding: 10px;
+    }
+
+    .menu-btn {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid #fecdd3;
+      border-radius: 10px;
+      background: #fff1f2;
+      color: #9f1239;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .menu-info {
+      font-size: 11px;
+      color: #64748b;
+      margin: 0 0 8px;
+      word-break: break-word;
+    }
+
     .dot {
       width: 10px;
       height: 10px;
@@ -323,6 +378,16 @@
       transform: translateY(-1px);
     }
 
+    @media (max-width: 768px) {
+      .hamburger-btn {
+        display: inline-flex;
+      }
+
+      .section.compact-hide {
+        display: none;
+      }
+    }
+
     /* ---- Hidden ---- */
     .hidden { display: none !important; }
   </style>
@@ -336,16 +401,24 @@
       <div class="topbar-title">Pulsar C6</div>
       <div class="topbar-sub">Pet Robot &mdash; BLE Control</div>
     </div>
-    <div class="conn-chip">
-      <span class="dot dot-off" id="status-dot"></span>
-      <span id="conn-label">Offline</span>
+    <div class="topbar-right">
+      <div class="conn-chip">
+        <span class="dot dot-off" id="status-dot"></span>
+        <span id="conn-label">Offline</span>
+      </div>
+      <button id="hamburger-btn" class="hamburger-btn" type="button" aria-label="Menu">☰</button>
     </div>
   </header>
+
+  <div id="hamburger-menu" class="hamburger-menu hidden">
+    <p id="menu-device-name" class="menu-info">Sin dispositivo conectado</p>
+    <button id="menu-disconnect-btn" class="menu-btn hidden" type="button">Desconectar</button>
+  </div>
 
   <main>
 
     <!-- Connect / Disconnect -->
-    <div class="section">
+    <div id="connect-section" class="section">
       <div class="section-label">Conexion Bluetooth</div>
       <div id="device-name-row" class="text-xs text-slate-500 mb-3 hidden">Dispositivo: <span id="device-name"></span></div>
       <button id="connect-btn" class="btn-connect">Conectar</button>
@@ -433,6 +506,11 @@
     const currentAction  = document.getElementById('current-action');
     const allCmdBtns     = document.querySelectorAll('.cmd-btn');
     const installPwaBtn  = document.getElementById('install-pwa-btn');
+    const connectSection = document.getElementById('connect-section');
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const menuDisconnectBtn = document.getElementById('menu-disconnect-btn');
+    const menuDeviceName = document.getElementById('menu-device-name');
 
     let robot = null;
     let lastEmotionBtn = null;
@@ -458,6 +536,8 @@
 
     // ---- UI STATE ----
     function setConnected(connected, deviceName) {
+      const mobile = window.matchMedia('(max-width: 768px)').matches;
+
       if (connected) {
         statusDot.className = 'dot dot-on';
         connLabel.textContent = 'Online';
@@ -468,6 +548,11 @@
           deviceNameRow.classList.remove('hidden');
         }
         allCmdBtns.forEach(b => b.disabled = false);
+        menuDisconnectBtn.classList.remove('hidden');
+        menuDeviceName.textContent = deviceName ? `Dispositivo: ${deviceName}` : 'Dispositivo conectado';
+        if (mobile) {
+          connectSection.classList.add('compact-hide');
+        }
       } else {
         statusDot.className = 'dot dot-off';
         connLabel.textContent = 'Offline';
@@ -479,8 +564,26 @@
         currentAction.textContent  = '---';
         lastEmotionBtn = null;
         lastActionBtn  = null;
+        menuDisconnectBtn.classList.add('hidden');
+        menuDeviceName.textContent = 'Sin dispositivo conectado';
+        connectSection.classList.remove('compact-hide');
       }
     }
+
+    function toggleMenu() {
+      hamburgerMenu.classList.toggle('hidden');
+    }
+
+    function closeMenu() {
+      hamburgerMenu.classList.add('hidden');
+    }
+
+    window.addEventListener('resize', () => {
+      if (!window.matchMedia('(max-width: 768px)').matches) {
+        connectSection.classList.remove('compact-hide');
+        closeMenu();
+      }
+    });
 
     // ---- BLE ----
     async function connectBLE() {
@@ -529,6 +632,16 @@
     // ---- EVENTS ----
     connectBtn.addEventListener('click', connectBLE);
     disconnectBtn.addEventListener('click', disconnectBLE);
+    hamburgerBtn.addEventListener('click', toggleMenu);
+    menuDisconnectBtn.addEventListener('click', () => {
+      disconnectBLE();
+      closeMenu();
+    });
+    document.addEventListener('click', (event) => {
+      if (hamburgerMenu.classList.contains('hidden')) return;
+      const clickInside = hamburgerMenu.contains(event.target) || hamburgerBtn.contains(event.target);
+      if (!clickInside) closeMenu();
+    });
 
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
