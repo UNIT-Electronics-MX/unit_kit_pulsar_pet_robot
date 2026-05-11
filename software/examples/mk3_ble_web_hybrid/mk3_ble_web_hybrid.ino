@@ -231,7 +231,7 @@ class MyServerCallbacks : public BLEServerCallbacks {
 
 class CommandCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic* pChar) {
-    String value = String((const char*)pChar->getValue().data());
+    String value = String(pChar->getValue().c_str());
     if (value.length() == 0) return;
 
     String cmd = value;
