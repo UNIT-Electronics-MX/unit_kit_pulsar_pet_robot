@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pulsar C6 - Control</title>
+  <meta name="description" content="Control del Pulsar C6 Pet Robot via Bluetooth Web">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#7c3aed">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="bluetooth-icon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+
+    body {
+      background: linear-gradient(160deg, #fce7ff 0%, #e8f0ff 50%, #e7fff4 100%);
+      color: #1e293b;
+      min-height: 100vh;
+      overscroll-behavior: none;
+    }
+
+    /* ---- Top bar ---- */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e9d9ff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.07);
+    }
+
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #7c3aed;
+      white-space: nowrap;
+    }
+
+    .topbar-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 1px;
+    }
+
+    /* ---- Connection chip ---- */
+    .conn-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f5f0ff;
+      border: 1.5px solid #ddd6fe;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #7c3aed;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hamburger-btn {
+      display: none;
+      width: 38px;
+      height: 38px;
+      border: 1.5px solid #ddd6fe;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #7c3aed;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-menu {
+      position: fixed;
+      top: 64px;
+      right: 12px;
+      z-index: 65;
+      width: min(240px, calc(100vw - 24px));
+      background: #ffffff;
+      border: 1.5px solid #ddd6fe;
+      border-radius: 14px;
+      box-shadow: 0 10px 28px rgba(124, 58, 237, 0.18);
+      padding: 10px;
+    }
+
+    .menu-btn {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid #fecdd3;
+      border-radius: 10px;
+      background: #fff1f2;
+      color: #9f1239;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .menu-info {
+      font-size: 11px;
+      color: #64748b;
+      margin: 0 0 8px;
+      word-break: break-word;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-on  { background: #10b981; box-shadow: 0 0 6px #10b981; animation: glow 2s ease-in-out infinite; }
+    .dot-off { background: #f87171; }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 4px #10b981; }
+      50% { box-shadow: 0 0 12px #10b981; }
+    }
+
+    /* ---- Main ---- */
+    main {
+      padding: 14px 12px 80px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ---- Section ---- */
+    .section {
+      background: white;
+      border: 1.5px solid #ede9fe;
+      border-radius: 20px;
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.05);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #a78bfa;
+      margin-bottom: 12px;
+    }
+
+    /* ---- Connect button ---- */
+    .btn-connect {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+    }
+
+    .btn-connect:active { transform: scale(0.97); }
+
+    .btn-disconnect {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #fca5a5, #ef4444);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 16px rgba(239,68,68,0.25);
+    }
+
+    .btn-disconnect:active { transform: scale(0.97); }
+
+    /* ---- Status values ---- */
+    .state-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .state-pill {
+      flex: 1;
+      background: linear-gradient(135deg, #f5f0ff, #eff9ff);
+      border: 1.5px solid #ddd6fe;
+      border-radius: 14px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+
+    .state-pill-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+
+    .state-pill-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #7c3aed;
+      text-transform: capitalize;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ---- Command buttons ---- */
+    .cmd-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .cmd-grid-5 { grid-template-columns: repeat(5, 1fr); }
+    .cmd-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+    @media (max-width: 360px) {
+      .cmd-grid-5 { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .cmd-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 6px;
+      border-radius: 16px;
+      border: 2px solid transparent;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      gap: 5px;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .cmd-btn .icon { font-size: 24px; line-height: 1; }
+
+    .cmd-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .cmd-btn:not(:disabled):active {
+      transform: scale(0.93);
+    }
+
+    .cmd-btn:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    /* Emotion — pastel */
+    .e-happy    { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+    .e-sleepy   { background: #f5f3ff; border-color: #ddd6fe; color: #5b21b6; }
+    .e-surprised{ background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+    .e-wink     { background: #fdf2f8; border-color: #fbcfe8; color: #9d174d; }
+    .e-angry    { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+
+    /* Action — pastel */
+    .a-standup  { background: #f0fdf4; border-color: #bbf7d0; color: #14532d; }
+    .a-sit      { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+    .a-sleep    { background: #f8fafc; border-color: #cbd5e1; color: #475569; }
+    .a-wave     { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+    .a-walk     { background: #ecfeff; border-color: #a5f3fc; color: #164e63; }
+    .a-stop     { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+
+    /* Active state */
+    .cmd-btn.active-cmd {
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.25);
+      filter: brightness(0.95) saturate(1.3);
+    }
+
+    /* ---- Log ---- */
+    .log-box {
+      background: #fafafa;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      height: 160px;
+      overflow-y: auto;
+      padding: 10px 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+    }
+
+    .log-box::-webkit-scrollbar { width: 4px; }
+    .log-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    .log-line { padding: 3px 0; line-height: 1.5; }
+    .log-line.ok   { color: #059669; }
+    .log-line.err  { color: #dc2626; }
+    .log-line.info { color: #2563eb; }
+    .log-line.warn { color: #d97706; }
+
+    .log-clear {
+      background: none;
+      border: 1.5px solid #e2e8f0;
+      color: #94a3b8;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      float: right;
+      margin-bottom: 8px;
+    }
+
+    .log-clear:active { background: #f1f5f9; }
+
+    /* ---- Info box ---- */
+    .uuid-row {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .uuid-row:last-child { border-bottom: none; }
+    .uuid-label { color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+    .uuid-val { color: #64748b; word-break: break-all; }
+
+    /* ---- PWA Install CTA ---- */
+    .install-cta {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 70;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: #ffffff;
+      background: linear-gradient(135deg, #7c3aed, #6366f1);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .install-cta:active {
+      transform: scale(0.96);
+    }
+
+    .install-cta:hover {
+      box-shadow: 0 10px 26px rgba(99, 102, 241, 0.45);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+      .hamburger-btn {
+        display: inline-flex;
+      }
+    }
+
+    .section.compact-hide {
+      display: none !important;
+    }
+
+    /* ---- Hidden ---- */
+    .hidden { display: none !important; }
+  </style>
+</head>
+
+<body>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div>
+      <div class="topbar-title">Pulsar C6</div>
+      <div class="topbar-sub">Pet Robot &mdash; BLE Control</div>
+    </div>
+    <div class="topbar-right">
+      <div class="conn-chip">
+        <span class="dot dot-off" id="status-dot"></span>
+        <span id="conn-label">Offline</span>
+      </div>
+      <button id="hamburger-btn" class="hamburger-btn" type="button" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <div id="hamburger-menu" class="hamburger-menu hidden">
+    <p id="menu-device-name" class="menu-info">Sin dispositivo conectado</p>
+    <button id="menu-disconnect-btn" class="menu-btn hidden" type="button">Desconectar</button>
+  </div>
+
+  <main>
+
+    <!-- Connect / Disconnect -->
+    <div id="connect-section" class="section">
+      <div class="section-label">Conexion Bluetooth</div>
+      <div id="device-name-row" class="text-xs text-slate-500 mb-3 hidden">Dispositivo: <span id="device-name"></span></div>
+      <button id="connect-btn" class="btn-connect">Conectar</button>
+      <button id="disconnect-btn" class="btn-disconnect hidden">Desconectar</button>
+    </div>
+
+    <!-- State -->
+    <div class="section">
+      <div class="section-label">Estado Actual</div>
+      <div class="state-row">
+        <div class="state-pill">
+          <div class="state-pill-label">Emocion</div>
+          <div class="state-pill-value" id="current-emotion">---</div>
+        </div>
+        <div class="state-pill">
+          <div class="state-pill-label">Accion</div>
+          <div class="state-pill-value" id="current-action">---</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emotions -->
+    <div class="section">
+      <div class="section-label">Emociones</div>
+      <div class="cmd-grid cmd-grid-5">
+        <button class="cmd-btn e-happy"    onclick="sendCommand('happy')"     disabled><span class="icon">😊</span>Happy</button>
+        <button class="cmd-btn e-sleepy"   onclick="sendCommand('sleepy')"    disabled><span class="icon">😴</span>Sleepy</button>
+        <button class="cmd-btn e-surprised"onclick="sendCommand('surprised')" disabled><span class="icon">😲</span>Wow</button>
+        <button class="cmd-btn e-wink"     onclick="sendCommand('wink')"      disabled><span class="icon">😉</span>Wink</button>
+        <button class="cmd-btn e-angry"    onclick="sendCommand('angry')"     disabled><span class="icon">😠</span>Angry</button>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="section">
+      <div class="section-label">Acciones</div>
+      <div class="cmd-grid cmd-grid-3">
+        <button class="cmd-btn a-standup" onclick="sendCommand('standup')" disabled><span class="icon">📍</span>Stand</button>
+        <button class="cmd-btn a-sit"     onclick="sendCommand('sit')"     disabled><span class="icon">🪑</span>Sit</button>
+        <button class="cmd-btn a-sleep"   onclick="sendCommand('sleep')"   disabled><span class="icon">🛏️</span>Sleep</button>
+        <button class="cmd-btn a-wave"    onclick="sendCommand('wave')"    disabled><span class="icon">👋</span>Wave</button>
+        <button class="cmd-btn a-walk"    onclick="sendCommand('walk')"    disabled><span class="icon">🚶</span>Walk</button>
+        <button class="cmd-btn a-stop"    onclick="sendCommand('stop')"    disabled><span class="icon">⏹</span>Stop</button>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="section">
+      <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
+        Log
+        <button class="log-clear" onclick="clearLog()">Limpiar</button>
+      </div>
+      <div id="log-box" class="log-box">
+        <div class="log-line info">Esperando conexion BLE...</div>
+      </div>
+    </div>
+
+    <!-- UUIDs -->
+    <div class="section">
+      <div class="section-label">Informacion BLE</div>
+      <div class="uuid-row">
+        <div class="uuid-label">Service UUID</div>
+        <div class="uuid-val">4fafc201-1fb5-459e-8fcc-c5c9c331914b</div>
+      </div>
+      <div class="uuid-row">
+        <div class="uuid-label">Characteristic UUID</div>
+        <div class="uuid-val">beb5483e-36e1-4688-b7f5-ea07361b26a8</div>
+      </div>
+    </div>
+
+  </main>
+
+  <button id="install-pwa-btn" class="install-cta hidden" type="button">Instalar app</button>
+
+  <script src="script-pulsar-c6-ble.js"></script>
+  <script>
+    const connectBtn    = document.getElementById('connect-btn');
+    const disconnectBtn = document.getElementById('disconnect-btn');
+    const statusDot     = document.getElementById('status-dot');
+    const connLabel     = document.getElementById('conn-label');
+    const deviceNameEl  = document.getElementById('device-name');
+    const deviceNameRow = document.getElementById('device-name-row');
+    const logBox        = document.getElementById('log-box');
+    const currentEmotion = document.getElementById('current-emotion');
+    const currentAction  = document.getElementById('current-action');
+    const allCmdBtns     = document.querySelectorAll('.cmd-btn');
+    const installPwaBtn  = document.getElementById('install-pwa-btn');
+    const connectSection = document.getElementById('connect-section');
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const menuDisconnectBtn = document.getElementById('menu-disconnect-btn');
+    const menuDeviceName = document.getElementById('menu-device-name');
+
+    let robot = null;
+    let lastEmotionBtn = null;
+    let lastActionBtn  = null;
+    let deferredInstallPrompt = null;
+    let installMode = 'none';
+    const SW_VERSION = 'v4';
+
+    // ---- LOG ----
+    function addLog(msg, type = 'info') {
+      const el = document.createElement('div');
+      el.className = `log-line ${type}`;
+      const t = new Date().toLocaleTimeString('es-ES', { hour12: false });
+      el.textContent = `[${t}] ${msg}`;
+      logBox.appendChild(el);
+      logBox.scrollTop = logBox.scrollHeight;
+      const lines = logBox.querySelectorAll('.log-line');
+      if (lines.length > 60) lines[0].remove();
+    }
+
+    function clearLog() {
+      logBox.innerHTML = '<div class="log-line info">Log limpiado</div>';
+    }
+
+    // ---- UI STATE ----
+    function setConnected(connected, deviceName) {
+      const mobile = window.matchMedia('(max-width: 768px)').matches;
+
+      if (connected) {
+        statusDot.className = 'dot dot-on';
+        connLabel.textContent = 'Online';
+        connectBtn.classList.add('hidden');
+        disconnectBtn.classList.remove('hidden');
+        if (deviceName) {
+          deviceNameEl.textContent = deviceName;
+          deviceNameRow.classList.remove('hidden');
+        }
+        allCmdBtns.forEach(b => b.disabled = false);
+        menuDisconnectBtn.classList.remove('hidden');
+        menuDeviceName.textContent = deviceName ? `Dispositivo: ${deviceName}` : 'Dispositivo conectado';
+        if (mobile) connectSection.classList.add('compact-hide');
+      } else {
+        statusDot.className = 'dot dot-off';
+        connLabel.textContent = 'Offline';
+        connectBtn.classList.remove('hidden');
+        disconnectBtn.classList.add('hidden');
+        deviceNameRow.classList.add('hidden');
+        allCmdBtns.forEach(b => { b.disabled = true; b.classList.remove('active-cmd'); });
+        currentEmotion.textContent = '---';
+        currentAction.textContent  = '---';
+        lastEmotionBtn = null;
+        lastActionBtn  = null;
+        menuDisconnectBtn.classList.add('hidden');
+        menuDeviceName.textContent = 'Sin dispositivo conectado';
+        connectSection.classList.remove('compact-hide');
+      }
+    }
+
+    function toggleMenu() {
+      hamburgerMenu.classList.toggle('hidden');
+    }
+
+    function closeMenu() {
+      hamburgerMenu.classList.add('hidden');
+    }
+
+    window.addEventListener('resize', () => {
+      if (!window.matchMedia('(max-width: 768px)').matches) {
+        connectSection.classList.remove('compact-hide');
+        closeMenu();
+      } else if (robot && robot.isConnected) {
+        connectSection.classList.add('compact-hide');
+      }
+    });
+
+    // ---- BLE ----
+    async function connectBLE() {
+      connectBtn.disabled = true;
+      connectBtn.textContent = 'Conectando...';
+      addLog('Buscando dispositivo BLE...', 'info');
+      const ok = await robot.connect();
+      connectBtn.disabled = false;
+      connectBtn.textContent = 'Conectar';
+      if (ok) {
+        const s = robot.getStatus();
+        setConnected(true, s.deviceName || 'Pulsar C6');
+        addLog('Conexion exitosa', 'ok');
+      } else {
+        addLog('Error al conectar', 'err');
+      }
+    }
+
+    function disconnectBLE() {
+      robot.disconnect();
+      setConnected(false);
+      addLog('Desconectado', 'warn');
+    }
+
+    async function sendCommand(cmd) {
+      if (!robot.isConnected) { addLog('Sin conexion', 'err'); return; }
+      const ok = await robot.sendCommand(cmd);
+      if (!ok) { addLog(`Fallo: ${cmd}`, 'err'); return; }
+
+      if (PulsarC6BLE.isEmotion(cmd)) {
+        currentEmotion.textContent = cmd;
+        if (lastEmotionBtn) lastEmotionBtn.classList.remove('active-cmd');
+        const btn = [...allCmdBtns].find(b => b.onclick?.toString().includes(`'${cmd}'`));
+        if (btn) { btn.classList.add('active-cmd'); lastEmotionBtn = btn; }
+        addLog(`Emocion: ${cmd}`, 'ok');
+      }
+      if (PulsarC6BLE.isAction(cmd)) {
+        currentAction.textContent = cmd;
+        if (lastActionBtn) lastActionBtn.classList.remove('active-cmd');
+        const btn = [...allCmdBtns].find(b => b.onclick?.toString().includes(`'${cmd}'`));
+        if (btn) { btn.classList.add('active-cmd'); lastActionBtn = btn; }
+        addLog(`Accion: ${cmd}`, 'ok');
+      }
+    }
+
+    // ---- EVENTS ----
+    connectBtn.addEventListener('click', connectBLE);
+    disconnectBtn.addEventListener('click', disconnectBLE);
+    hamburgerBtn.addEventListener('click', toggleMenu);
+    menuDisconnectBtn.addEventListener('click', () => {
+      disconnectBLE();
+      closeMenu();
+    });
+    document.addEventListener('click', (event) => {
+      if (hamburgerMenu.classList.contains('hidden')) return;
+      const clickInside = hamburgerMenu.contains(event.target) || hamburgerBtn.contains(event.target);
+      if (!clickInside) closeMenu();
+    });
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installMode = 'prompt';
+      installPwaBtn.classList.remove('hidden');
+      addLog('Puedes instalar la app desde el boton "Instalar app"', 'info');
+    });
+
+    installPwaBtn.addEventListener('click', async () => {
+      if (installMode === 'ios') {
+        addLog('iPhone: pulsa Compartir y luego "Agregar a inicio"', 'info');
+        return;
+      }
+
+      if (!deferredInstallPrompt) {
+        addLog('Instalacion no disponible aun en este navegador', 'warn');
+        return;
+      }
+
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') {
+        addLog('Instalacion aceptada', 'ok');
+      } else {
+        addLog('Instalacion cancelada', 'warn');
+      }
+      deferredInstallPrompt = null;
+      installPwaBtn.classList.add('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      installPwaBtn.classList.add('hidden');
+      addLog('App instalada correctamente', 'ok');
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      robot = new PulsarC6BLE({
+        onLog: msg => addLog(msg, 'info'),
+        onConnected: () => { setConnected(true, robot.getStatus().deviceName || 'Pulsar C6'); },
+        onDisconnected: () => { setConnected(false); addLog('Dispositivo desconectado', 'warn'); },
+        onError: msg => addLog(msg, 'err')
+      });
+      setConnected(false);
+      addLog('Pagina lista. Toca "Conectar" para empezar.', 'info');
+
+      // Registrar Service Worker (PWA)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register(`./sw.js?${SW_VERSION}`)
+          .then((reg) => {
+            reg.update();
+            addLog('PWA lista para uso offline', 'info');
+          })
+          .catch(() => {});
+      }
+
+      // iOS Safari no dispara beforeinstallprompt; mostrar guia breve.
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+      if (isIOS && !isStandalone) {
+        installMode = 'ios';
+        installPwaBtn.classList.remove('hidden');
+        addLog('En iPhone: Compartir -> "Agregar a inicio" para instalar', 'info');
+      }
+
+      if (!window.isSecureContext) {
+        addLog('Instalacion PWA requiere HTTPS (o localhost)', 'warn');
+      }
+    });
+  </script>
+</body>
+</html>
