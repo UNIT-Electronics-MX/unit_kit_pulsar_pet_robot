@@ -8,14 +8,16 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#7c3aed">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
 
     body {
-      background: #0f0f1a;
-      color: #e2e8f0;
+      background: linear-gradient(160deg, #fce7ff 0%, #e8f0ff 50%, #e7fff4 100%);
+      color: #1e293b;
       min-height: 100vh;
       overscroll-behavior: none;
     }
@@ -25,25 +27,27 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background: #1a1a2e;
-      border-bottom: 1px solid #2d2d4a;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #e9d9ff;
       padding: 12px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.07);
     }
 
     .topbar-title {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700;
-      color: #a78bfa;
+      color: #7c3aed;
       white-space: nowrap;
     }
 
     .topbar-sub {
       font-size: 11px;
-      color: #64748b;
+      color: #94a3b8;
       margin-top: 1px;
     }
 
@@ -52,12 +56,13 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: #16213e;
-      border: 1px solid #2d3748;
+      background: #f5f0ff;
+      border: 1.5px solid #ddd6fe;
       border-radius: 999px;
       padding: 6px 14px;
       font-size: 13px;
       font-weight: 600;
+      color: #7c3aed;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -70,7 +75,7 @@
     }
 
     .dot-on  { background: #10b981; box-shadow: 0 0 6px #10b981; animation: glow 2s ease-in-out infinite; }
-    .dot-off { background: #ef4444; }
+    .dot-off { background: #f87171; }
 
     @keyframes glow {
       0%, 100% { box-shadow: 0 0 4px #10b981; }
@@ -79,26 +84,27 @@
 
     /* ---- Main ---- */
     main {
-      padding: 12px 12px 80px;
+      padding: 14px 12px 80px;
       max-width: 600px;
       margin: 0 auto;
     }
 
     /* ---- Section ---- */
     .section {
-      background: #1a1a2e;
-      border: 1px solid #2d2d4a;
-      border-radius: 16px;
-      padding: 16px;
+      background: white;
+      border: 1.5px solid #ede9fe;
+      border-radius: 20px;
+      padding: 18px 16px;
       margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.05);
     }
 
     .section-label {
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1.2px;
-      color: #64748b;
+      color: #a78bfa;
       margin-bottom: 12px;
     }
 
@@ -106,7 +112,7 @@
     .btn-connect {
       width: 100%;
       padding: 16px;
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
       color: white;
       font-size: 16px;
       font-weight: 700;
@@ -116,15 +122,15 @@
       transition: all 0.2s ease;
       -webkit-tap-highlight-color: transparent;
       letter-spacing: 0.3px;
-      box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+      box-shadow: 0 4px 16px rgba(124,58,237,0.3);
     }
 
-    .btn-connect:active { transform: scale(0.98); }
+    .btn-connect:active { transform: scale(0.97); }
 
     .btn-disconnect {
       width: 100%;
       padding: 16px;
-      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      background: linear-gradient(135deg, #fca5a5, #ef4444);
       color: white;
       font-size: 16px;
       font-weight: 700;
@@ -133,10 +139,10 @@
       cursor: pointer;
       transition: all 0.2s ease;
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+      box-shadow: 0 4px 16px rgba(239,68,68,0.25);
     }
 
-    .btn-disconnect:active { transform: scale(0.98); }
+    .btn-disconnect:active { transform: scale(0.97); }
 
     /* ---- Status values ---- */
     .state-row {
@@ -146,26 +152,26 @@
 
     .state-pill {
       flex: 1;
-      background: #0f0f1a;
-      border: 1px solid #2d2d4a;
-      border-radius: 12px;
+      background: linear-gradient(135deg, #f5f0ff, #eff9ff);
+      border: 1.5px solid #ddd6fe;
+      border-radius: 14px;
       padding: 12px 14px;
       min-width: 0;
     }
 
     .state-pill-label {
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      color: #64748b;
+      color: #94a3b8;
       margin-bottom: 4px;
     }
 
     .state-pill-value {
       font-size: 18px;
       font-weight: 700;
-      color: #a78bfa;
+      color: #7c3aed;
       text-transform: capitalize;
       white-space: nowrap;
       overflow: hidden;
@@ -191,23 +197,23 @@
       align-items: center;
       justify-content: center;
       padding: 14px 6px;
-      border-radius: 14px;
+      border-radius: 16px;
       border: 2px solid transparent;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.15s ease;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
-      gap: 6px;
+      gap: 5px;
       line-height: 1.2;
       text-align: center;
     }
 
-    .cmd-btn .icon { font-size: 22px; line-height: 1; }
+    .cmd-btn .icon { font-size: 24px; line-height: 1; }
 
     .cmd-btn:disabled {
-      opacity: 0.35;
+      opacity: 0.4;
       cursor: not-allowed;
     }
 
@@ -215,36 +221,37 @@
       transform: scale(0.93);
     }
 
-    /* Emotion colors */
-    .e-happy    { background: #2d1f00; border-color: #f59e0b; color: #fbbf24; }
-    .e-sleepy   { background: #1e1038; border-color: #8b5cf6; color: #a78bfa; }
-    .e-surprised{ background: #0c1f3a; border-color: #3b82f6; color: #60a5fa; }
-    .e-wink     { background: #2a0f23; border-color: #ec4899; color: #f472b6; }
-    .e-angry    { background: #2a0a0a; border-color: #ef4444; color: #f87171; }
-
-    /* Action colors */
-    .a-standup  { background: #0a2a1a; border-color: #10b981; color: #34d399; }
-    .a-sit      { background: #0f1040; border-color: #6366f1; color: #818cf8; }
-    .a-sleep    { background: #1a1a2e; border-color: #475569; color: #94a3b8; }
-    .a-wave     { background: #2d1f00; border-color: #f59e0b; color: #fbbf24; }
-    .a-walk     { background: #001a2a; border-color: #0891b2; color: #22d3ee; }
-    .a-stop     { background: #2a0a0a; border-color: #ef4444; color: #f87171; }
-
     .cmd-btn:not(:disabled):hover {
-      filter: brightness(1.15);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
     }
 
-    /* ---- Active state highlight ---- */
+    /* Emotion — pastel */
+    .e-happy    { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+    .e-sleepy   { background: #f5f3ff; border-color: #ddd6fe; color: #5b21b6; }
+    .e-surprised{ background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+    .e-wink     { background: #fdf2f8; border-color: #fbcfe8; color: #9d174d; }
+    .e-angry    { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+
+    /* Action — pastel */
+    .a-standup  { background: #f0fdf4; border-color: #bbf7d0; color: #14532d; }
+    .a-sit      { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+    .a-sleep    { background: #f8fafc; border-color: #cbd5e1; color: #475569; }
+    .a-wave     { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+    .a-walk     { background: #ecfeff; border-color: #a5f3fc; color: #164e63; }
+    .a-stop     { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+
+    /* Active state */
     .cmd-btn.active-cmd {
-      filter: brightness(1.3);
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.25);
+      filter: brightness(0.95) saturate(1.3);
     }
 
     /* ---- Log ---- */
     .log-box {
-      background: #080810;
-      border: 1px solid #1e293b;
-      border-radius: 12px;
+      background: #fafafa;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
       height: 160px;
       overflow-y: auto;
       padding: 10px 12px;
@@ -253,18 +260,18 @@
     }
 
     .log-box::-webkit-scrollbar { width: 4px; }
-    .log-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .log-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
     .log-line { padding: 3px 0; line-height: 1.5; }
-    .log-line.ok   { color: #10b981; }
-    .log-line.err  { color: #f87171; }
-    .log-line.info { color: #60a5fa; }
-    .log-line.warn { color: #fbbf24; }
+    .log-line.ok   { color: #059669; }
+    .log-line.err  { color: #dc2626; }
+    .log-line.info { color: #2563eb; }
+    .log-line.warn { color: #d97706; }
 
     .log-clear {
       background: none;
-      border: 1px solid #334155;
-      color: #64748b;
+      border: 1.5px solid #e2e8f0;
+      color: #94a3b8;
       border-radius: 8px;
       padding: 4px 10px;
       font-size: 11px;
@@ -273,20 +280,19 @@
       margin-bottom: 8px;
     }
 
-    .log-clear:active { background: #1e293b; }
+    .log-clear:active { background: #f1f5f9; }
 
     /* ---- Info box ---- */
     .uuid-row {
       font-family: 'Courier New', monospace;
       font-size: 11px;
-      color: #475569;
-      padding: 6px 0;
-      border-bottom: 1px solid #1e293b;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
     }
 
     .uuid-row:last-child { border-bottom: none; }
-    .uuid-label { color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
-    .uuid-val { color: #7c91b0; word-break: break-all; }
+    .uuid-label { color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+    .uuid-val { color: #64748b; word-break: break-all; }
 
     /* ---- Hidden ---- */
     .hidden { display: none !important; }
@@ -499,626 +505,13 @@
       });
       setConnected(false);
       addLog('Pagina lista. Toca "Conectar" para empezar.', 'info');
-    });
-  </script>
-</body>
-</html>
-  <style>
-    * {
-      font-family: 'Poppins', sans-serif;
-    }
 
-    h1, h2, h3 {
-      font-family: 'Fredoka', sans-serif;
-      font-weight: 600;
-    }
-
-    body {
-      background: linear-gradient(135deg, #f5e6ff 0%, #e6f3ff 50%, #e6ffe6 100%);
-      min-height: 100vh;
-    }
-
-    /* Status Indicator */
-    .status-indicator {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      display: inline-block;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-    }
-    .status-connected { 
-      background: linear-gradient(135deg, #10b981, #059669);
-      animation: statusGlow 2s ease-in-out infinite;
-    }
-    .status-disconnected { 
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-    }
-    
-    @keyframes statusGlow {
-      0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
-      50% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.8); }
-    }
-
-    /* Header */
-    header {
-      background: linear-gradient(135deg, #ffffff 0%, #f8f5ff 100%);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      backdrop-filter: blur(10px);
-      border-bottom: 2px solid #f0e6ff;
-    }
-
-    /* Cards */
-    .card {
-      background: white;
-      border-radius: 20px;
-      padding: 28px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-      border: 2px solid #f0e6ff;
-      transition: all 0.3s ease;
-    }
-
-    .card:hover {
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      transform: translateY(-2px);
-    }
-
-    .section-title {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    /* Command Buttons */
-    .cmd-button {
-      border-radius: 16px;
-      font-weight: 600;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 2px solid transparent;
-      position: relative;
-      overflow: hidden;
-      font-size: 15px;
-      padding: 14px 16px;
-      white-space: nowrap;
-    }
-
-    .cmd-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.2);
-      transition: left 0.3s ease;
-    }
-
-    .cmd-button:hover:not(:disabled)::before {
-      left: 100%;
-    }
-
-    .cmd-button:hover:not(:disabled) {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    }
-
-    .cmd-button:active:not(:disabled) {
-      transform: translateY(-2px);
-    }
-
-    .cmd-button:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    /* Emotion Buttons */
-    .emotion-happy { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; }
-    .emotion-sleepy { background: linear-gradient(135deg, #a78bfa, #8b5cf6); color: white; }
-    .emotion-surprised { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: white; }
-    .emotion-wink { background: linear-gradient(135deg, #f472b6, #ec4899); color: white; }
-    .emotion-angry { background: linear-gradient(135deg, #ef5350, #d32f2f); color: white; }
-
-    /* Action Buttons */
-    .action-standup { background: linear-gradient(135deg, #34d399, #10b981); color: white; }
-    .action-sit { background: linear-gradient(135deg, #818cf8, #6366f1); color: white; }
-    .action-sleep { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #4f46e5; }
-    .action-wave { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; }
-    .action-walk { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
-    .action-stop { background: linear-gradient(135deg, #f87171, #ef4444); color: white; }
-
-    /* Status Box */
-    .status-box {
-      background: linear-gradient(135deg, #f0f9ff, #f0fdf4);
-      border: 2px solid #bfdbfe;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-
-    .status-label {
-      font-size: 13px;
-      color: #6b7280;
-      font-weight: 500;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .status-value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #1f2937;
-      text-transform: capitalize;
-    }
-
-    /* Log Container */
-    .log-container {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border-radius: 16px;
-      padding: 16px;
-      height: 220px;
-      overflow-y: auto;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      color: #10b981;
-      border: 2px solid #334155;
-    }
-
-    .log-entry {
-      padding: 6px 0;
-      line-height: 1.5;
-      border-left: 2px solid transparent;
-      padding-left: 8px;
-      transition: border-color 0.2s ease;
-    }
-
-    .log-entry.success { color: #10b981; border-left-color: #10b981; }
-    .log-entry.error { color: #ef4444; border-left-color: #ef4444; }
-    .log-entry.info { color: #60a5fa; border-left-color: #60a5fa; }
-    .log-entry.warn { color: #f59e0b; border-left-color: #f59e0b; }
-
-    /* Scrollbar */
-    .log-container::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .log-container::-webkit-scrollbar-track {
-      background: #1e293b;
-      border-radius: 10px;
-    }
-
-    .log-container::-webkit-scrollbar-thumb {
-      background: #10b981;
-      border-radius: 10px;
-    }
-
-    .log-container::-webkit-scrollbar-thumb:hover {
-      background: #059669;
-    }
-
-    /* Connection Buttons */
-    .btn-primary {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 24px;
-      font-weight: 600;
-      font-size: 15px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-    }
-
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 24px;
-      font-weight: 600;
-      font-size: 15px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-    }
-
-    .btn-danger:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-    }
-
-    .btn-secondary {
-      background: linear-gradient(135deg, #6b7280, #4b5563);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-weight: 500;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .btn-secondary:hover {
-      transform: translateY(-1px);
-    }
-
-    /* Info Box */
-    .info-box {
-      background: linear-gradient(135deg, #f8f5ff, #f0f9ff);
-      border-left: 4px solid #8b5cf6;
-      border-radius: 8px;
-      padding: 12px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      word-break: break-all;
-      margin-bottom: 8px;
-    }
-
-    .info-box .label {
-      font-size: 10px;
-      color: #6b7280;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-
-    .info-box .value {
-      color: #1f2937;
-      font-weight: 500;
-    }
-
-    /* Button Grid */
-    .btn-grid {
-      display: grid;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .btn-grid-2 {
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    }
-
-    .btn-grid-3 {
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    }
-
-    .btn-grid-5 {
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    }
-
-    /* Hide utility */
-    .hidden {
-      display: none !important;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .card {
-        padding: 20px;
+      // Registrar Service Worker (PWA)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => addLog('PWA lista para uso offline', 'info'))
+          .catch(() => {});
       }
-
-      .section-title {
-        font-size: 18px;
-      }
-
-      .cmd-button {
-        padding: 12px 12px;
-        font-size: 13px;
-      }
-
-      .status-value {
-        font-size: 22px;
-      }
-
-      .btn-grid-5,
-      .btn-grid-3,
-      .btn-grid-2 {
-        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-      }
-    }
-
-    /* Pulse animation */
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    .pulse {
-      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-  </style>
-</head>
-
-<body>
-  <!-- Header -->
-  <header>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex items-center justify-between flex-wrap gap-6">
-        <!-- Title -->
-        <div>
-          <h1 class="text-4xl font-bold text-gray-900">🤖 Pulsar C6</h1>
-          <p class="text-gray-600 mt-1 font-medium">Pet Robot - Control por BLE</p>
-        </div>
-
-        <!-- Connection Status & Buttons -->
-        <div class="flex items-center gap-8">
-          <!-- Status -->
-          <div class="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-3 rounded-full border-2 border-blue-200">
-            <span class="status-indicator status-disconnected" id="status-indicator"></span>
-            <div>
-              <div id="connection-status" class="text-sm font-bold text-red-600">Desconectado</div>
-              <div id="device-name" class="text-xs text-gray-500 mt-0.5">---</div>
-            </div>
-          </div>
-
-          <!-- Buttons -->
-          <div class="flex gap-2">
-            <button id="connect-btn" class="btn-primary">
-              🔗 Conectar
-            </button>
-            <button id="disconnect-btn" class="btn-danger hidden">
-              🔌 Desconectar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <!-- Status Section -->
-    <div class="card">
-      <div class="section-title">📊 Estado Actual</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="status-box">
-          <div class="status-label">🎭 Emoción Actual</div>
-          <div class="status-value" id="current-emotion">---</div>
-        </div>
-        <div class="status-box">
-          <div class="status-label">⚡ Acción Actual</div>
-          <div class="status-value" id="current-action">---</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Emotions Section -->
-    <div class="card">
-      <div class="section-title">🎭 Emociones</div>
-      <div class="btn-grid btn-grid-5">
-        <button class="cmd-button emotion-happy" onclick="sendCommand('happy')" disabled>
-          😊<br>Happy
-        </button>
-        <button class="cmd-button emotion-sleepy" onclick="sendCommand('sleepy')" disabled>
-          😴<br>Sleepy
-        </button>
-        <button class="cmd-button emotion-surprised" onclick="sendCommand('surprised')" disabled>
-          😲<br>Surprised
-        </button>
-        <button class="cmd-button emotion-wink" onclick="sendCommand('wink')" disabled>
-          😉<br>Wink
-        </button>
-        <button class="cmd-button emotion-angry" onclick="sendCommand('angry')" disabled>
-          😠<br>Angry
-        </button>
-      </div>
-    </div>
-
-    <!-- Actions Section -->
-    <div class="card">
-      <div class="section-title">🦵 Acciones</div>
-      <div class="btn-grid btn-grid-3">
-        <button class="cmd-button action-standup" onclick="sendCommand('standup')" disabled>
-          📍<br>Stand Up
-        </button>
-        <button class="cmd-button action-sit" onclick="sendCommand('sit')" disabled>
-          🪑<br>Sit Down
-        </button>
-        <button class="cmd-button action-sleep" onclick="sendCommand('sleep')" disabled>
-          🛏️<br>Sleep
-        </button>
-        <button class="cmd-button action-wave" onclick="sendCommand('wave')" disabled>
-          👋<br>Wave
-        </button>
-        <button class="cmd-button action-walk" onclick="sendCommand('walk')" disabled>
-          🚶<br>Walk
-        </button>
-        <button class="cmd-button action-stop" onclick="sendCommand('stop')" disabled>
-          ⏹️<br>Stop
-        </button>
-      </div>
-    </div>
-
-    <!-- Device Info Section -->
-    <div class="card">
-      <div class="section-title">ℹ️ Información del Dispositivo</div>
-      <div class="info-box">
-        <div class="label">Service UUID</div>
-        <div class="value">4fafc201-1fb5-459e-8fcc-c5c9c331914b</div>
-      </div>
-      <div class="info-box">
-        <div class="label">Characteristic UUID</div>
-        <div class="value">beb5483e-36e1-4688-b7f5-ea07361b26a8</div>
-      </div>
-    </div>
-
-    <!-- Log Section -->
-    <div class="card">
-      <div class="flex items-center justify-between mb-4">
-        <div class="section-title mb-0">📋 Log de Actividad</div>
-        <button onclick="clearLog()" class="btn-secondary">
-          🗑️ Limpiar
-        </button>
-      </div>
-      <div id="log-container" class="log-container">
-        <div class="log-entry info">⏳ Esperando conexión...</div>
-      </div>
-    </div>
-
-  </main>
-
-  <script src="script-pulsar-c6-ble.js"></script>
-  <script>
-    // ========================================
-    // DOM References
-    // ========================================
-    const connectBtn = document.getElementById('connect-btn');
-    const disconnectBtn = document.getElementById('disconnect-btn');
-    const statusIndicator = document.getElementById('status-indicator');
-    const connectionStatus = document.getElementById('connection-status');
-    const deviceName = document.getElementById('device-name');
-    const logContainer = document.getElementById('log-container');
-    const currentEmotion = document.getElementById('current-emotion');
-    const currentAction = document.getElementById('current-action');
-    const commandButtons = document.querySelectorAll('.cmd-button');
-
-    // Robot instance
-    let robot = null;
-
-    // ========================================
-    // LOGGING
-    // ========================================
-    function addLog(message, type = 'info') {
-      const entry = document.createElement('div');
-      entry.className = `log-entry ${type}`;
-      
-      // Format timestamp
-      const now = new Date();
-      const time = now.toLocaleTimeString('es-ES', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      entry.textContent = `[${time}] ${message}`;
-      
-      logContainer.appendChild(entry);
-      logContainer.scrollTop = logContainer.scrollHeight;
-
-      // Keep only last 50 entries
-      const entries = logContainer.querySelectorAll('.log-entry');
-      if (entries.length > 50) {
-        entries[0].remove();
-      }
-    }
-
-    function clearLog() {
-      logContainer.innerHTML = '<div class="log-entry info">📋 Log limpiado</div>';
-    }
-
-    // ========================================
-    // UI STATE
-    // ========================================
-    function updateUIState(connected) {
-      if (connected) {
-        statusIndicator.className = 'status-indicator status-connected';
-        connectionStatus.textContent = '✅ Conectado';
-        connectionStatus.className = 'text-sm font-bold text-green-600';
-        connectBtn.classList.add('hidden');
-        disconnectBtn.classList.remove('hidden');
-        commandButtons.forEach(btn => btn.disabled = false);
-        addLog('✅ Conexión exitosa', 'success');
-      } else {
-        statusIndicator.className = 'status-indicator status-disconnected';
-        connectionStatus.textContent = '❌ Desconectado';
-        connectionStatus.className = 'text-sm font-bold text-red-600';
-        deviceName.textContent = '---';
-        connectBtn.classList.remove('hidden');
-        disconnectBtn.classList.add('hidden');
-        commandButtons.forEach(btn => btn.disabled = true);
-        currentEmotion.textContent = '---';
-        currentAction.textContent = '---';
-      }
-    }
-
-    // ========================================
-    // BLE CONTROL
-    // ========================================
-    async function connectBLE() {
-      addLog('🔄 Conectando...', 'info');
-      connectBtn.disabled = true;
-      const connected = await robot.connect();
-      connectBtn.disabled = false;
-      if (connected) {
-        const status = robot.getStatus();
-        deviceName.textContent = status.deviceName || 'Pulsar C6';
-        updateUIState(true);
-      } else {
-        updateUIState(false);
-        addLog('❌ Error en la conexión', 'error');
-      }
-    }
-
-    function disconnectBLE() {
-      robot.disconnect();
-      updateUIState(false);
-      addLog('⚠️ Desconectado del dispositivo', 'warn');
-    }
-
-    async function sendCommand(command) {
-      if (!robot.isConnected) {
-        addLog('❌ No conectado - Conecta primero', 'error');
-        return;
-      }
-
-      const ok = await robot.sendCommand(command);
-      if (ok) {
-        // Update local state
-        if (PulsarC6BLE.isEmotion(command)) {
-          currentEmotion.textContent = command;
-          addLog(`🎭 Emoción: ${command}`, 'success');
-        }
-        if (PulsarC6BLE.isAction(command)) {
-          currentAction.textContent = command;
-          addLog(`⚡ Acción: ${command}`, 'success');
-        }
-      } else {
-        addLog(`❌ Comando rechazado: ${command}`, 'error');
-      }
-    }
-
-    // ========================================
-    // EVENT LISTENERS
-    // ========================================
-    connectBtn.addEventListener('click', connectBLE);
-    disconnectBtn.addEventListener('click', disconnectBLE);
-
-    // ========================================
-    // INIT
-    // ========================================
-    document.addEventListener('DOMContentLoaded', () => {
-      // Create robot instance with callbacks
-      robot = new PulsarC6BLE({
-        onLog: (msg) => addLog(msg, 'info'),
-        onConnected: () => {
-          updateUIState(true);
-          const status = robot.getStatus();
-          deviceName.textContent = status.deviceName || 'Pulsar C6';
-        },
-        onDisconnected: () => {
-          updateUIState(false);
-          addLog('⚠️ Desconexión del dispositivo', 'warn');
-        },
-        onError: (msg) => {
-          addLog(`❌ ${msg}`, 'error');
-        }
-      });
-
-      updateUIState(false);
-      addLog('🚀 Página cargada correctamente', 'info');
-      addLog('⏳ Haz clic en "Conectar" para empezar', 'info');
     });
   </script>
 </body>

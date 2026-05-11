@@ -287,30 +287,33 @@ int calcApertura(int base, bool parpadear) {
 void ojosHappy() {
   int ap = calcApertura(eyeH, true);
   u8g2.clearBuffer();
-  drawEyebrowL(1); drawEyebrowR(1);
   drawEye(eyeLX, eyeY, ap, lookX, lookY);
   drawEye(eyeRX, eyeY, ap, lookX, lookY);
-  u8g2.drawLine(eyeLX - eyeW - 2, eyeY + 8, eyeLX + eyeW + 2, eyeY + 8);
-  u8g2.drawLine(eyeRX - eyeW - 2, eyeY + 8, eyeRX + eyeW + 2, eyeY + 8);
+  // mejillas
+  u8g2.drawDisc(eyeLX - eyeW + 2, eyeY + eyeH + 4, 4);
+  u8g2.drawDisc(eyeRX + eyeW - 2, eyeY + eyeH + 4, 4);
   u8g2.sendBuffer();
 }
 
 void ojosAngry() {
-  int ap = calcApertura(eyeH - 3, false);
+  int ap = calcApertura(eyeH - 2, false);
   u8g2.clearBuffer();
-  drawEyebrowL(2); drawEyebrowR(2);
-  drawEye(eyeLX, eyeY, ap, lookX, lookY);
-  drawEye(eyeRX, eyeY, ap, lookX, lookY);
+  // ojos mas juntos y entrecerrados
+  drawEye(eyeLX + 3, eyeY, ap, 2, 2);
+  drawEye(eyeRX - 3, eyeY, ap, -2, 2);
+  // medias lunas de enojo sobre cada ojo
+  int by = eyeY - ap - 5;
+  u8g2.drawCircle(eyeLX + 3, by, 6, U8G2_DRAW_UPPER_RIGHT);
+  u8g2.drawCircle(eyeLX + 3, by, 7, U8G2_DRAW_UPPER_RIGHT);
+  u8g2.drawCircle(eyeRX - 3, by, 6, U8G2_DRAW_UPPER_LEFT);
+  u8g2.drawCircle(eyeRX - 3, by, 7, U8G2_DRAW_UPPER_LEFT);
   u8g2.sendBuffer();
 }
 
 void ojosSleepy() {
   u8g2.clearBuffer();
-  drawEyebrowL(0); drawEyebrowR(0);
   drawEye(eyeLX, eyeY, 2, 0, 0);
   drawEye(eyeRX, eyeY, 2, 0, 0);
-  u8g2.drawLine(eyeLX - eyeW - 1, eyeY + 1, eyeLX + eyeW + 1, eyeY + 1);
-  u8g2.drawLine(eyeRX - eyeW - 1, eyeY + 1, eyeRX + eyeW + 1, eyeY + 1);
   u8g2.setFont(u8g2_font_5x7_tr);
   int zOff = animFrame % 18;
   u8g2.drawStr(100, 40 - zOff,     "z");
@@ -321,12 +324,14 @@ void ojosSleepy() {
 
 void ojosSurprised() {
   u8g2.clearBuffer();
-  drawEyebrowL(3); drawEyebrowR(3);
   drawEye(eyeLX, eyeY, eyeH + 5, 0, -2);
   drawEye(eyeRX, eyeY, eyeH + 5, 0, -2);
-  u8g2.setFont(u8g2_font_6x10_tr);
-  u8g2.drawStr(eyeLX - 3, eyeY + 20, "!");
-  u8g2.drawStr(eyeRX - 3, eyeY + 20, "!");
+  // lineas de impacto laterales
+  int cx = 64, cy = eyeY;
+  u8g2.drawLine(cx - 30, cy - 14, cx - 22, cy - 8);
+  u8g2.drawLine(cx + 22, cy - 14, cx + 30, cy - 8);
+  u8g2.drawLine(cx - 32, cy,      cx - 24, cy);
+  u8g2.drawLine(cx + 24, cy,      cx + 32, cy);
   u8g2.sendBuffer();
 }
 
@@ -334,11 +339,11 @@ void ojosWink() {
   int ap = calcApertura(eyeH, false);
   bool cerrado = (animFrame % 30) < 15;
   u8g2.clearBuffer();
-  drawEyebrowL(1); drawEyebrowR(1);
   drawEye(eyeRX, eyeY, ap, lookX, lookY);
   if (cerrado) {
     u8g2.drawLine(eyeLX - eyeW, eyeY,   eyeLX + eyeW, eyeY);
     u8g2.drawLine(eyeLX - eyeW, eyeY+1, eyeLX + eyeW, eyeY+1);
+    u8g2.drawLine(eyeLX - eyeW, eyeY-1, eyeLX + eyeW, eyeY-1);
   } else {
     drawEye(eyeLX, eyeY, ap, lookX, lookY);
   }
