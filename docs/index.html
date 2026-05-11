@@ -382,10 +382,10 @@
       .hamburger-btn {
         display: inline-flex;
       }
+    }
 
-      .section.compact-hide {
-        display: none;
-      }
+    .section.compact-hide {
+      display: none !important;
     }
 
     /* ---- Hidden ---- */
@@ -551,9 +551,7 @@
         allCmdBtns.forEach(b => b.disabled = false);
         menuDisconnectBtn.classList.remove('hidden');
         menuDeviceName.textContent = deviceName ? `Dispositivo: ${deviceName}` : 'Dispositivo conectado';
-        if (mobile) {
-          connectSection.classList.add('compact-hide');
-        }
+        if (mobile) connectSection.classList.add('compact-hide');
       } else {
         statusDot.className = 'dot dot-off';
         connLabel.textContent = 'Offline';
@@ -583,6 +581,8 @@
       if (!window.matchMedia('(max-width: 768px)').matches) {
         connectSection.classList.remove('compact-hide');
         closeMenu();
+      } else if (robot && robot.isConnected) {
+        connectSection.classList.add('compact-hide');
       }
     });
 
