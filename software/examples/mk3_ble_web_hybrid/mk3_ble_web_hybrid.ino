@@ -43,6 +43,22 @@ int marchaStep = 0;
 unsigned long ultimoPasoMarcha = 0;
 const unsigned long MARCHA_MS = 220;
 
+// ================================================================
+//  OJOS (emociones visuales)
+// ================================================================
+const int eyeLX = 38;
+const int eyeRX = 90;
+const int eyeY = 32;
+const int eyeW = 15;
+const int eyeH = 12;
+const int pupilR = 5;
+
+int lookX = 0;
+int lookY = 0;
+int blinkState = 0;
+int blinkCounter = 0;
+int animFrame = 0;
+
 uint16_t anguloToPWM(int angulo) {
   return map(angulo, 0, 180, SERVOMIN, SERVOMAX);
 }
@@ -151,6 +167,192 @@ void mostrarPantallaEstado() {
   u8g2.drawStr(2, 63, "Srv:4fafc201...914b");
 
   u8g2.sendBuffer();
+}
+
+// ================================================================
+//  HELPERS — OLED EYES (KAWAI STYLE!)
+// ================================================================
+void drawEye(int cx, int cy, int aperturaH, int px, int py) {
+  if (aperturaH <= 1) {
+    u8g2.drawLine(cx - eyeW, cy,   cx + eyeW, cy);
+    u8g2.drawLine(cx - eyeW, cy+1, cx + eyeW, cy+1);
+    u8g2.drawLine(cx - eyeW, cy-1, cx + eyeW, cy-1);
+    return;
+  }
+  for (int dy = -aperturaH; dy <= aperturaH; dy++) {
+    float ratio = 1.0f - ((float)(dy*dy)) / ((float)(aperturaH*aperturaH));
+    int hw = (int)(eyeW * sqrt(ratio));
+    u8g2.drawLine(cx - hw, cy + dy, cx + hw, cy + dy);
+  }
+  
+  int pcx = cx + px, pcy = cy + py;
+  
+  u8g2.setDrawColor(0);
+  int largerPupil = pupilR + 2;
+  for (int dy = -largerPupil; dy <= largerPupil; dy++)
+    for (int dx = -largerPupil; dx <= largerPupil; dx++)
+      if (dx*dx + dy*dy <= largerPupil*largerPupil)
+        u8g2.drawPixel(pcx + dx, pcy + dy);
+  
+  u8g2.setDrawColor(1);
+  u8g2.drawPixel(pcx - 2, pcy - 2);
+  u8g2.drawPixel(pcx - 1, pcy - 2);
+  u8g2.drawPixel(pcx - 2, pcy - 1);
+  u8g2.drawPixel(pcx - 1, pcy - 1);
+}
+
+void drawEyebrowL(int tipo) {
+  int bx = eyeLX, by = eyeY - eyeH - 6;
+  switch (tipo) {
+    case 0:
+      u8g2.drawLine(bx-11, by,   bx+11, by);
+      u8g2.drawLine(bx-11, by+1, bx+11, by+1);
+      u8g2.drawLine(bx-12, by+2, bx+12, by+2);
+      break;
+    case 1:
+      u8g2.drawLine(bx-11, by+3, bx,    by);
+      u8g2.drawLine(bx,    by,   bx+11, by+3);
+      u8g2.drawLine(bx-11, by+4, bx,    by+1);
+      u8g2.drawLine(bx,    by+1, bx+11, by+4);
+      u8g2.drawLine(bx-12, by+5, bx+12, by+5);
+      break;
+    case 2:
+      u8g2.drawLine(bx-11, by-2, bx+11, by+5);
+      u8g2.drawLine(bx-11, by-1, bx+11, by+6);
+      u8g2.drawLine(bx-12, by,   bx+12, by+7);
+      break;
+    case 3:
+      u8g2.drawLine(bx-11, by-5, bx+11, by-5);
+      u8g2.drawLine(bx-11, by-4, bx+11, by-4);
+      u8g2.drawLine(bx-12, by-3, bx+12, by-3);
+      break;
+    case 4:
+      u8g2.drawLine(bx-11, by+4, bx+11, by-1);
+      u8g2.drawLine(bx-11, by+5, bx+11, by);
+      u8g2.drawLine(bx-12, by+6, bx+12, by+1);
+      break;
+  }
+}
+
+void drawEyebrowR(int tipo) {
+  int bx = eyeRX, by = eyeY - eyeH - 6;
+  switch (tipo) {
+    case 0:
+      u8g2.drawLine(bx-11, by,   bx+11, by);
+      u8g2.drawLine(bx-11, by+1, bx+11, by+1);
+      u8g2.drawLine(bx-12, by+2, bx+12, by+2);
+      break;
+    case 1:
+      u8g2.drawLine(bx-11, by+3, bx,    by);
+      u8g2.drawLine(bx,    by,   bx+11, by+3);
+      u8g2.drawLine(bx-11, by+4, bx,    by+1);
+      u8g2.drawLine(bx,    by+1, bx+11, by+4);
+      u8g2.drawLine(bx-12, by+5, bx+12, by+5);
+      break;
+    case 2:
+      u8g2.drawLine(bx-11, by+5, bx+11, by-2);
+      u8g2.drawLine(bx-11, by+6, bx+11, by-1);
+      u8g2.drawLine(bx-12, by+7, bx+12, by);
+      break;
+    case 3:
+      u8g2.drawLine(bx-11, by-5, bx+11, by-5);
+      u8g2.drawLine(bx-11, by-4, bx+11, by-4);
+      u8g2.drawLine(bx-12, by-3, bx+12, by-3);
+      break;
+    case 4:
+      u8g2.drawLine(bx-11, by-1, bx+11, by+4);
+      u8g2.drawLine(bx-11, by,   bx+11, by+5);
+      u8g2.drawLine(bx-12, by+1, bx+12, by+6);
+      break;
+  }
+}
+
+void actualizarParpadeo() {
+  blinkCounter++;
+  if      (blinkCounter > 60 && blinkCounter < 63) blinkState = 1;
+  else if (blinkCounter < 66)                       blinkState = 2;
+  else if (blinkCounter < 69)                       blinkState = 3;
+  else                                              blinkState = 0;
+  if (blinkCounter > 120) blinkCounter = 0;
+}
+
+int calcApertura(int base, bool parpadear) {
+  if (!parpadear) return base;
+  if (blinkState == 1) return base / 2;
+  if (blinkState == 2) return 1;
+  if (blinkState == 3) return base / 2;
+  return base;
+}
+
+void ojosHappy() {
+  int ap = calcApertura(eyeH, true);
+  u8g2.clearBuffer();
+  drawEyebrowL(1); drawEyebrowR(1);
+  drawEye(eyeLX, eyeY, ap, lookX, lookY);
+  drawEye(eyeRX, eyeY, ap, lookX, lookY);
+  u8g2.drawLine(eyeLX - eyeW - 2, eyeY + 8, eyeLX + eyeW + 2, eyeY + 8);
+  u8g2.drawLine(eyeRX - eyeW - 2, eyeY + 8, eyeRX + eyeW + 2, eyeY + 8);
+  u8g2.sendBuffer();
+}
+
+void ojosAngry() {
+  int ap = calcApertura(eyeH - 3, false);
+  u8g2.clearBuffer();
+  drawEyebrowL(2); drawEyebrowR(2);
+  drawEye(eyeLX, eyeY, ap, lookX, lookY);
+  drawEye(eyeRX, eyeY, ap, lookX, lookY);
+  u8g2.sendBuffer();
+}
+
+void ojosSleepy() {
+  u8g2.clearBuffer();
+  drawEyebrowL(0); drawEyebrowR(0);
+  drawEye(eyeLX, eyeY, 2, 0, 0);
+  drawEye(eyeRX, eyeY, 2, 0, 0);
+  u8g2.drawLine(eyeLX - eyeW - 1, eyeY + 1, eyeLX + eyeW + 1, eyeY + 1);
+  u8g2.drawLine(eyeRX - eyeW - 1, eyeY + 1, eyeRX + eyeW + 1, eyeY + 1);
+  u8g2.setFont(u8g2_font_5x7_tr);
+  int zOff = animFrame % 18;
+  u8g2.drawStr(100, 40 - zOff,     "z");
+  u8g2.drawStr(107, 34 - zOff / 2, "Z");
+  u8g2.drawStr(114, 28 - zOff / 3, "Z");
+  u8g2.sendBuffer();
+}
+
+void ojosSurprised() {
+  u8g2.clearBuffer();
+  drawEyebrowL(3); drawEyebrowR(3);
+  drawEye(eyeLX, eyeY, eyeH + 5, 0, -2);
+  drawEye(eyeRX, eyeY, eyeH + 5, 0, -2);
+  u8g2.setFont(u8g2_font_6x10_tr);
+  u8g2.drawStr(eyeLX - 3, eyeY + 20, "!");
+  u8g2.drawStr(eyeRX - 3, eyeY + 20, "!");
+  u8g2.sendBuffer();
+}
+
+void ojosWink() {
+  int ap = calcApertura(eyeH, false);
+  bool cerrado = (animFrame % 30) < 15;
+  u8g2.clearBuffer();
+  drawEyebrowL(1); drawEyebrowR(1);
+  drawEye(eyeRX, eyeY, ap, lookX, lookY);
+  if (cerrado) {
+    u8g2.drawLine(eyeLX - eyeW, eyeY,   eyeLX + eyeW, eyeY);
+    u8g2.drawLine(eyeLX - eyeW, eyeY+1, eyeLX + eyeW, eyeY+1);
+  } else {
+    drawEye(eyeLX, eyeY, ap, lookX, lookY);
+  }
+  u8g2.sendBuffer();
+}
+
+void mostrarEmocion() {
+  actualizarParpadeo();
+  if      (emocionActual == "happy")      ojosHappy();
+  else if (emocionActual == "sleepy")     ojosSleepy();
+  else if (emocionActual == "surprised")  ojosSurprised();
+  else if (emocionActual == "wink")       ojosWink();
+  else if (emocionActual == "angry")      ojosAngry();
+  else                                    ojosHappy();
 }
 
 String aplicarComando(const String& cmdIn) {
@@ -331,8 +533,9 @@ void loop() {
   actualizarServosSuave();
 
   static unsigned long lastDraw = 0;
-  if (millis() - lastDraw > 150) {
-    mostrarPantallaEstado();
+  if (millis() - lastDraw > 80) {
+    animFrame++;
+    mostrarEmocion();
     lastDraw = millis();
   }
 }
