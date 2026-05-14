@@ -1,11 +1,13 @@
 
-# Pulsar Pet Robot Kit
+# UNIT Pulsar Pet Robot
 
-A modular development kit for creating interactive desk pet projects using the ESP32-C6 microcontroller, OLED display, and servo motors. Designed for easy customization, this kit is suitable for both beginners and experienced makers.
+**DIY Open-Source Quadruped Robot — powered by ESP32-C6 and 3D Printing.**
+
+The **UNIT Pulsar Pet Robot** is an open-source quadruped robot designed as a desktop companion toy with basic interactive functions. It is accessible, modular, and easy to assemble using 3D-printed parts and commercially available electronic components. It is intended for beginners and makers learning robotics, embedded programming, and 3D printing through a fun and approachable platform.
 
 <div align="center">
-  <img src="hardware/resources/img/ws.png" width="450px" alt="Pulsar Pet Robot Kit">
-  <p><em>Development Kit Overview</em></p>
+  <img src="hardware/resources/img/Views/Isometric.png" width="450px" alt="UNIT Pulsar Pet Robot">
+  <p><em>UNIT Pulsar Pet Robot — Isometric View</em></p>
 </div>
 
 ## Quick Links
@@ -25,13 +27,54 @@ A modular development kit for creating interactive desk pet projects using the E
 |-------------------|------------------------------------------------------------|
 | Microcontroller   | ESP32-C6                                                   |
 | Display           | OLED                                                       |
-| Actuators         | 4x Servo Motors                                            |
+| Actuators         | 12x SG90 Servo Motors                                      |
+| Connectivity      | Wi-Fi 6 / Bluetooth 5 / QWIIC ecosystem                    |
+| Mechanical        | 3D-printable chassis (quadruped, modular)                  |
+| Development       | Arduino IDE · ESP-IDF · MicroPython                        |
+
+## Highlights
+
+| Feature | Description |
+| :--- | :--- |
+| Quadruped design | 12 SG90 servos for natural motion |
+| Modular hardware | Easy to upgrade or repair |
+| Low cost | Built with widely available parts |
+| Open source | Hardware, firmware, and documentation |
+| 3D printable | Manufacturable at home |
+| OLED interface | Integrated visual feedback |
+| QWIIC ecosystem | Simplified wiring |
+
+## Gallery
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center"><img src="hardware/resources/img/Views/Isometric.png" alt="Isometric" height="200"></td>
+<td align="center"><img src="hardware/resources/img/Views/Front.png" alt="Front" height="200"></td>
+<td align="center"><img src="hardware/resources/img/Views/Top.png" alt="Top" height="200"></td>
+</tr>
+<tr>
+<td align="center"><b>Isometric</b></td>
+<td align="center"><b>Front</b></td>
+<td align="center"><b>Top</b></td>
+</tr>
+</table>
+
+</div>
 
 ## Documentation
 
 - [Schematic Diagram](#)
 - [Pinout Diagram](#)
 - [Getting Started Guide](#)
+
+| # | Page | Description |
+| :---: | :--- | :--- |
+| 1 | [Getting Started](1.-Getting-Started) | Overview, features, build time and prerequisites |
+| 2 | [Components](2.-Components) | Bill of materials, mechanical and 3D printed parts |
+| 3 | [How to Build It](3.-How-to-Build-It) | Printing settings and step-by-step assembly |
+| 4 | Recommendations | Best practices and troubleshooting |
 
 ## 📝 License
 
@@ -40,4 +83,5 @@ Licensed under the **MIT License**. See [`LICENSE.md`](LICENSE.md) for details.
 <div align="center">
   <sub>Created by UNIT Electronics</sub>
 </div>
+
 
