@@ -63,18 +63,6 @@ The **UNIT Pulsar Pet Robot** is an open-source quadruped robot designed as a de
 
 </div>
 
-## Documentation
-
-- [Schematic Diagram](#)
-- [Pinout Diagram](#)
-- [Getting Started Guide](#)
-
-| # | Page | Description |
-| :---: | :--- | :--- |
-| 1 | [Getting Started](1.-Getting-Started) | Overview, features, build time and prerequisites |
-| 2 | [Components](2.-Components) | Bill of materials, mechanical and 3D printed parts |
-| 3 | [How to Build It](3.-How-to-Build-It) | Printing settings and step-by-step assembly |
-| 4 | Recommendations | Best practices and troubleshooting |
 
 ## 📝 License
 
