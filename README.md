@@ -36,7 +36,7 @@ The **UNIT Pulsar Pet Robot** is an open-source quadruped robot designed as a de
 
 | Feature | Description |
 | :--- | :--- |
-| Quadruped design | 12 SG90 servos for natural motion |
+| Quadruped design | 4 SG90 servos for motion |
 | Modular hardware | Easy to upgrade or repair |
 | Low cost | Built with widely available parts |
 | Open source | Hardware, firmware, and documentation |
