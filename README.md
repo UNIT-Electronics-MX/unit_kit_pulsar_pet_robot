@@ -27,7 +27,7 @@ The **UNIT Pulsar Pet Robot** is an open-source quadruped robot designed as a de
 |-------------------|------------------------------------------------------------|
 | Microcontroller   | ESP32-C6                                                   |
 | Display           | OLED                                                       |
-| Actuators         | 12x SG90 Servo Motors                                      |
+| Actuators         | 4x SG90 Servo Motors                                      |
 | Connectivity      | Wi-Fi 6 / Bluetooth 5 / QWIIC ecosystem                    |
 | Mechanical        | 3D-printable chassis (quadruped, modular)                  |
 | Development       | Arduino IDE · ESP-IDF · MicroPython                        |
