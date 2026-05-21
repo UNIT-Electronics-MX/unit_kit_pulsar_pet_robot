@@ -1,717 +1,1074 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pulsar C6 - Control</title>
-  <meta name="description" content="Control del Pulsar C6 Pet Robot via Bluetooth Web">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#7c3aed">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="bluetooth-icon.svg">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-
-    body {
-      background: linear-gradient(160deg, #fce7ff 0%, #e8f0ff 50%, #e7fff4 100%);
-      color: #1e293b;
-      min-height: 100vh;
-      overscroll-behavior: none;
-    }
-
-    /* ---- Top bar ---- */
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid #e9d9ff;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      box-shadow: 0 2px 12px rgba(124,58,237,0.07);
-    }
-
-    .topbar-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #7c3aed;
-      white-space: nowrap;
-    }
-
-    .topbar-sub {
-      font-size: 11px;
-      color: #94a3b8;
-      margin-top: 1px;
-    }
-
-    /* ---- Connection chip ---- */
-    .conn-chip {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #f5f0ff;
-      border: 1.5px solid #ddd6fe;
-      border-radius: 999px;
-      padding: 6px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #7c3aed;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .hamburger-btn {
-      display: none;
-      width: 38px;
-      height: 38px;
-      border: 1.5px solid #ddd6fe;
-      border-radius: 10px;
-      background: #ffffff;
-      color: #7c3aed;
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1;
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hamburger-menu {
-      position: fixed;
-      top: 64px;
-      right: 12px;
-      z-index: 65;
-      width: min(240px, calc(100vw - 24px));
-      background: #ffffff;
-      border: 1.5px solid #ddd6fe;
-      border-radius: 14px;
-      box-shadow: 0 10px 28px rgba(124, 58, 237, 0.18);
-      padding: 10px;
-    }
-
-    .menu-btn {
-      width: 100%;
-      padding: 11px 12px;
-      border: 1.5px solid #fecdd3;
-      border-radius: 10px;
-      background: #fff1f2;
-      color: #9f1239;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .menu-info {
-      font-size: 11px;
-      color: #64748b;
-      margin: 0 0 8px;
-      word-break: break-word;
-    }
-
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .dot-on  { background: #10b981; box-shadow: 0 0 6px #10b981; animation: glow 2s ease-in-out infinite; }
-    .dot-off { background: #f87171; }
-
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 0 4px #10b981; }
-      50% { box-shadow: 0 0 12px #10b981; }
-    }
-
-    /* ---- Main ---- */
-    main {
-      padding: 14px 12px 80px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    /* ---- Section ---- */
-    .section {
-      background: white;
-      border: 1.5px solid #ede9fe;
-      border-radius: 20px;
-      padding: 18px 16px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 12px rgba(124,58,237,0.05);
-    }
-
-    .section-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: #a78bfa;
-      margin-bottom: 12px;
-    }
-
-    /* ---- Connect button ---- */
-    .btn-connect {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #a78bfa, #7c3aed);
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-      letter-spacing: 0.3px;
-      box-shadow: 0 4px 16px rgba(124,58,237,0.3);
-    }
-
-    .btn-connect:active { transform: scale(0.97); }
-
-    .btn-disconnect {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #fca5a5, #ef4444);
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 16px rgba(239,68,68,0.25);
-    }
-
-    .btn-disconnect:active { transform: scale(0.97); }
-
-    /* ---- Status values ---- */
-    .state-row {
-      display: flex;
-      gap: 10px;
-    }
-
-    .state-pill {
-      flex: 1;
-      background: linear-gradient(135deg, #f5f0ff, #eff9ff);
-      border: 1.5px solid #ddd6fe;
-      border-radius: 14px;
-      padding: 12px 14px;
-      min-width: 0;
-    }
-
-    .state-pill-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #94a3b8;
-      margin-bottom: 4px;
-    }
-
-    .state-pill-value {
-      font-size: 18px;
-      font-weight: 700;
-      color: #7c3aed;
-      text-transform: capitalize;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* ---- Command buttons ---- */
-    .cmd-grid {
-      display: grid;
-      gap: 10px;
-    }
-
-    .cmd-grid-5 { grid-template-columns: repeat(5, 1fr); }
-    .cmd-grid-3 { grid-template-columns: repeat(3, 1fr); }
-
-    @media (max-width: 360px) {
-      .cmd-grid-5 { grid-template-columns: repeat(3, 1fr); }
-    }
-
-    .cmd-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 14px 6px;
-      border-radius: 16px;
-      border: 2px solid transparent;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-      gap: 5px;
-      line-height: 1.2;
-      text-align: center;
-    }
-
-    .cmd-btn .icon { font-size: 24px; line-height: 1; }
-
-    .cmd-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    .cmd-btn:not(:disabled):active {
-      transform: scale(0.93);
-    }
-
-    .cmd-btn:not(:disabled):hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-    }
-
-    /* Emotion — pastel */
-    .e-happy    { background: #fffbeb; border-color: #fde68a; color: #92400e; }
-    .e-sleepy   { background: #f5f3ff; border-color: #ddd6fe; color: #5b21b6; }
-    .e-surprised{ background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
-    .e-wink     { background: #fdf2f8; border-color: #fbcfe8; color: #9d174d; }
-    .e-angry    { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
-
-    /* Action — pastel */
-    .a-standup  { background: #f0fdf4; border-color: #bbf7d0; color: #14532d; }
-    .a-sit      { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
-    .a-sleep    { background: #f8fafc; border-color: #cbd5e1; color: #475569; }
-    .a-wave     { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
-    .a-walk     { background: #ecfeff; border-color: #a5f3fc; color: #164e63; }
-    .a-stop     { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
-
-    /* Active state */
-    .cmd-btn.active-cmd {
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.25);
-      filter: brightness(0.95) saturate(1.3);
-    }
-
-    /* ---- Log ---- */
-    .log-box {
-      background: #fafafa;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 14px;
-      height: 160px;
-      overflow-y: auto;
-      padding: 10px 12px;
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-    }
-
-    .log-box::-webkit-scrollbar { width: 4px; }
-    .log-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-    .log-line { padding: 3px 0; line-height: 1.5; }
-    .log-line.ok   { color: #059669; }
-    .log-line.err  { color: #dc2626; }
-    .log-line.info { color: #2563eb; }
-    .log-line.warn { color: #d97706; }
-
-    .log-clear {
-      background: none;
-      border: 1.5px solid #e2e8f0;
-      color: #94a3b8;
-      border-radius: 8px;
-      padding: 4px 10px;
-      font-size: 11px;
-      cursor: pointer;
-      float: right;
-      margin-bottom: 8px;
-    }
-
-    .log-clear:active { background: #f1f5f9; }
-
-    /* ---- Info box ---- */
-    .uuid-row {
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-      padding: 8px 0;
-      border-bottom: 1px solid #f1f5f9;
-    }
-
-    .uuid-row:last-child { border-bottom: none; }
-    .uuid-label { color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
-    .uuid-val { color: #64748b; word-break: break-all; }
-
-    /* ---- PWA Install CTA ---- */
-    .install-cta {
-      position: fixed;
-      right: 14px;
-      bottom: 14px;
-      z-index: 70;
-      border: none;
-      border-radius: 999px;
-      padding: 12px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      color: #ffffff;
-      background: linear-gradient(135deg, #7c3aed, #6366f1);
-      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: transform 0.15s ease, box-shadow 0.2s ease;
-    }
-
-    .install-cta:active {
-      transform: scale(0.96);
-    }
-
-    .install-cta:hover {
-      box-shadow: 0 10px 26px rgba(99, 102, 241, 0.45);
-      transform: translateY(-1px);
-    }
-
-    @media (max-width: 768px) {
-      .hamburger-btn {
-        display: inline-flex;
-      }
-    }
-
-    .section.compact-hide {
-      display: none !important;
-    }
-
-    /* ---- Hidden ---- */
-    .hidden { display: none !important; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Documentation </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #ffffff; }
+        .file-icon { margin-right: 8px; }
+        .folder-icon { color: #666666; }
+        .file-item { margin: 2px 0; padding: 6px; border-bottom: 1px solid #e0e0e0; }
+        .file-item:hover { background-color: #f5f5f5; }
+        .file-size { color: #666666; font-size: 0.9em; }
+        .file-date { color: #666666; font-size: 0.85em; }
+        .preview-modal img { max-width: 100%; height: auto; }
+        .tree-item { margin-left: 20px; }
+        .stats-card { background-color: #f8f9fa; color: #333333; border: 1px solid #dee2e6; }
+        .type-badge { font-size: 0.75em; }
+        .pdf-viewer { width: 100%; height: 600px; border: none; }
+        .file-link { text-decoration: none; color: #333333; }
+        .file-link:hover { color: #0066cc; }
+        .navbar { background-color: #ffffff !important; border-bottom: 1px solid #dee2e6; }
+        .navbar-brand { color: #333333 !important; }
+        .navbar-text { color: #666666 !important; }
+        .card { border: 1px solid #dee2e6; box-shadow: none; }
+        .card-header { background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; }
+        .btn { border-radius: 3px; }
+        h1, h2, h3, h4, h5 { color: #333333; }
+    </style>
 </head>
-
 <body>
-
-  <!-- Top bar -->
-  <header class="topbar">
-    <div>
-      <div class="topbar-title">Pulsar C6</div>
-      <div class="topbar-sub">Pet Robot &mdash; BLE Control</div>
-    </div>
-    <div class="topbar-right">
-      <div class="conn-chip">
-        <span class="dot dot-off" id="status-dot"></span>
-        <span id="conn-label">Offline</span>
-      </div>
-      <button id="hamburger-btn" class="hamburger-btn" type="button" aria-label="Menu">☰</button>
-    </div>
-  </header>
-
-  <div id="hamburger-menu" class="hamburger-menu hidden">
-    <p id="menu-device-name" class="menu-info">Sin dispositivo conectado</p>
-    <button id="menu-disconnect-btn" class="menu-btn hidden" type="button">Desconectar</button>
-  </div>
-
-  <main>
-
-    <!-- Connect / Disconnect -->
-    <div id="connect-section" class="section">
-      <div class="section-label">Conexion Bluetooth</div>
-      <div id="device-name-row" class="text-xs text-slate-500 mb-3 hidden">Dispositivo: <span id="device-name"></span></div>
-      <button id="connect-btn" class="btn-connect">Conectar</button>
-      <button id="disconnect-btn" class="btn-disconnect hidden">Desconectar</button>
-    </div>
-
-    <!-- State -->
-    <div class="section">
-      <div class="section-label">Estado Actual</div>
-      <div class="state-row">
-        <div class="state-pill">
-          <div class="state-pill-label">Emocion</div>
-          <div class="state-pill-value" id="current-emotion">---</div>
+    <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                Hardware Documentation
+            </span>
+            <span class="navbar-text">
+                Generado: 2026-05-21 00:36:02
+            </span>
         </div>
-        <div class="state-pill">
-          <div class="state-pill-label">Accion</div>
-          <div class="state-pill-value" id="current-action">---</div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Resumen de Archivos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Total de Archivos:</strong> 48
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Imágenes:</strong> 33
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Documentos:</strong> 1
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Tamaño Total:</strong> 14.2 MB
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            Archivos de Hardware
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-text file-icon"></i>
+                        <a href="hardware/README.md" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">README.md</a>
+                        <span class="badge bg-primary type-badge me-2">document</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">614.0 B</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="tree-item">
+                    <div class="d-flex align-items-center file-item" style="cursor: pointer;" onclick="toggleFolder(this)">
+                        <i class="bi bi-chevron-down folder-toggle"></i>
+                        <i class="bi bi-folder-fill folder-icon file-icon"></i>
+                        <strong>resources</strong>
+                    </div>
+                    <div id="resources" class="ms-3">
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_es.png', 'unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_es.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_es.png', '_blank'); return false;" class="file-link me-2">unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_es.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_es.png', 'unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_es.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_es.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">434.6 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/unit_btm_v_1_0_0_icp10111_barometric_pressure_sensor.png', 'unit_btm_v_1_0_0_icp10111_barometric_pressure_sensor.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/unit_btm_v_1_0_0_icp10111_barometric_pressure_sensor.png', '_blank'); return false;" class="file-link me-2">unit_btm_v_1_0_0_icp10111_barometric_pressure_sensor.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/unit_btm_v_1_0_0_icp10111_barometric_pressure_sensor.png', 'unit_btm_v_1_0_0_icp10111_barometric_pressure_sensor.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/unit_btm_v_1_0_0_icp10111_barometric_pressure_sensor.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">144.0 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/unit_top_v_1_0_0_icp10111_barometric_pressure_sensor.png', 'unit_top_v_1_0_0_icp10111_barometric_pressure_sensor.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/unit_top_v_1_0_0_icp10111_barometric_pressure_sensor.png', '_blank'); return false;" class="file-link me-2">unit_top_v_1_0_0_icp10111_barometric_pressure_sensor.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/unit_top_v_1_0_0_icp10111_barometric_pressure_sensor.png', 'unit_top_v_1_0_0_icp10111_barometric_pressure_sensor.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/unit_top_v_1_0_0_icp10111_barometric_pressure_sensor.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">139.4 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.png', 'unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.png', '_blank'); return false;" class="file-link me-2">unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.png', 'unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">434.2 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/Dimensions.png', 'Dimensions.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/Dimensions.png', '_blank'); return false;" class="file-link me-2">Dimensions.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/Dimensions.png', 'Dimensions.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/Dimensions.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">123.7 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/Schematics_icon.jpg', 'Schematics_icon.jpg')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/Schematics_icon.jpg', '_blank'); return false;" class="file-link me-2">Schematics_icon.jpg</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/Schematics_icon.jpg', 'Schematics_icon.jpg')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/Schematics_icon.jpg" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">142.0 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/unit_dimension_v_1_0_0_icp10111_barometric_pressure_sensor.png', 'unit_dimension_v_1_0_0_icp10111_barometric_pressure_sensor.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/unit_dimension_v_1_0_0_icp10111_barometric_pressure_sensor.png', '_blank'); return false;" class="file-link me-2">unit_dimension_v_1_0_0_icp10111_barometric_pressure_sensor.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/unit_dimension_v_1_0_0_icp10111_barometric_pressure_sensor.png', 'unit_dimension_v_1_0_0_icp10111_barometric_pressure_sensor.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/unit_dimension_v_1_0_0_icp10111_barometric_pressure_sensor.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">288.3 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/unit_topology_V_0_0_1_ue0099_Sensor_Touch.png', 'unit_topology_V_0_0_1_ue0099_Sensor_Touch.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/unit_topology_V_0_0_1_ue0099_Sensor_Touch.png', '_blank'); return false;" class="file-link me-2">unit_topology_V_0_0_1_ue0099_Sensor_Touch.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/unit_topology_V_0_0_1_ue0099_Sensor_Touch.png', 'unit_topology_V_0_0_1_ue0099_Sensor_Touch.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/unit_topology_V_0_0_1_ue0099_Sensor_Touch.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">311.5 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.jpg', 'unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.jpg')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.jpg', '_blank'); return false;" class="file-link me-2">unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.jpg</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.jpg', 'unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.jpg')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/unit_pinout_v_0_0_1_ue0094_icp10111_barometric_pressure_sensor_en.jpg" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">1.1 MB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="tree-item">
+                    <div class="d-flex align-items-center file-item" style="cursor: pointer;" onclick="toggleFolder(this)">
+                        <i class="bi bi-chevron-down folder-toggle"></i>
+                        <i class="bi bi-folder-fill folder-icon file-icon"></i>
+                        <strong>img</strong>
+                    </div>
+                    <div id="resources_img" class="ms-3">
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/ws.png', 'ws.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/ws.png', '_blank'); return false;" class="file-link me-2">ws.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/ws.png', 'ws.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/ws.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">60.9 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="tree-item">
+                    <div class="d-flex align-items-center file-item" style="cursor: pointer;" onclick="toggleFolder(this)">
+                        <i class="bi bi-chevron-down folder-toggle"></i>
+                        <i class="bi bi-folder-fill folder-icon file-icon"></i>
+                        <strong>Assemble</strong>
+                    </div>
+                    <div id="resources_img_Assemble" class="ms-3">
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step2.png', 'Step2.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step2.png', '_blank'); return false;" class="file-link me-2">Step2.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step2.png', 'Step2.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step2.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">140.5 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step9.png', 'Step9.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step9.png', '_blank'); return false;" class="file-link me-2">Step9.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step9.png', 'Step9.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step9.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">95.5 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step1.png', 'Step1.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step1.png', '_blank'); return false;" class="file-link me-2">Step1.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step1.png', 'Step1.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step1.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">102.7 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step4.png', 'Step4.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step4.png', '_blank'); return false;" class="file-link me-2">Step4.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step4.png', 'Step4.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step4.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">98.0 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step3.png', 'Step3.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step3.png', '_blank'); return false;" class="file-link me-2">Step3.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step3.png', 'Step3.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step3.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">124.1 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step6.png', 'Step6.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step6.png', '_blank'); return false;" class="file-link me-2">Step6.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step6.png', 'Step6.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step6.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">54.0 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step7-1.png', 'Step7-1.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step7-1.png', '_blank'); return false;" class="file-link me-2">Step7-1.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step7-1.png', 'Step7-1.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step7-1.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">87.7 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step10.png', 'Step10.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step10.png', '_blank'); return false;" class="file-link me-2">Step10.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step10.png', 'Step10.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step10.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">125.6 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step2-1.png', 'Step2-1.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step2-1.png', '_blank'); return false;" class="file-link me-2">Step2-1.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step2-1.png', 'Step2-1.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step2-1.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">170.1 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step8.png', 'Step8.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step8.png', '_blank'); return false;" class="file-link me-2">Step8.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step8.png', 'Step8.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step8.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">100.0 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step7.png', 'Step7.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step7.png', '_blank'); return false;" class="file-link me-2">Step7.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step7.png', 'Step7.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step7.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">69.6 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Assemble/Step5.png', 'Step5.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Assemble/Step5.png', '_blank'); return false;" class="file-link me-2">Step5.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Assemble/Step5.png', 'Step5.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Assemble/Step5.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">62.5 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+                
+                <div class="tree-item">
+                    <div class="d-flex align-items-center file-item" style="cursor: pointer;" onclick="toggleFolder(this)">
+                        <i class="bi bi-chevron-down folder-toggle"></i>
+                        <i class="bi bi-folder-fill folder-icon file-icon"></i>
+                        <strong>Parts</strong>
+                    </div>
+                    <div id="resources_img_Parts" class="ms-3">
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Parts/Ears.png', 'Ears.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Parts/Ears.png', '_blank'); return false;" class="file-link me-2">Ears.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Parts/Ears.png', 'Ears.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Parts/Ears.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">21.6 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Parts/Legs.png', 'Legs.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Parts/Legs.png', '_blank'); return false;" class="file-link me-2">Legs.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Parts/Legs.png', 'Legs.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Parts/Legs.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">96.6 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Parts/LowerBody.png', 'LowerBody.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Parts/LowerBody.png', '_blank'); return false;" class="file-link me-2">LowerBody.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Parts/LowerBody.png', 'LowerBody.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Parts/LowerBody.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">76.9 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Parts/HeadBack.png', 'HeadBack.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Parts/HeadBack.png', '_blank'); return false;" class="file-link me-2">HeadBack.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Parts/HeadBack.png', 'HeadBack.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Parts/HeadBack.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">47.7 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Parts/ComponentsBase.png', 'ComponentsBase.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Parts/ComponentsBase.png', '_blank'); return false;" class="file-link me-2">ComponentsBase.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Parts/ComponentsBase.png', 'ComponentsBase.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Parts/ComponentsBase.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">83.7 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Parts/UpperBody.png', 'UpperBody.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Parts/UpperBody.png', '_blank'); return false;" class="file-link me-2">UpperBody.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Parts/UpperBody.png', 'UpperBody.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Parts/UpperBody.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">73.6 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Parts/HeadFront.png', 'HeadFront.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Parts/HeadFront.png', '_blank'); return false;" class="file-link me-2">HeadFront.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Parts/HeadFront.png', 'HeadFront.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Parts/HeadFront.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">44.5 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+                
+                <div class="tree-item">
+                    <div class="d-flex align-items-center file-item" style="cursor: pointer;" onclick="toggleFolder(this)">
+                        <i class="bi bi-chevron-down folder-toggle"></i>
+                        <i class="bi bi-folder-fill folder-icon file-icon"></i>
+                        <strong>Views</strong>
+                    </div>
+                    <div id="resources_img_Views" class="ms-3">
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Views/Top.png', 'Top.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Views/Top.png', '_blank'); return false;" class="file-link me-2">Top.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Views/Top.png', 'Top.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Views/Top.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">37.9 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Views/Isometric.png', 'Isometric.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Views/Isometric.png', '_blank'); return false;" class="file-link me-2">Isometric.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Views/Isometric.png', 'Isometric.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Views/Isometric.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">99.1 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Views/Right.png', 'Right.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Views/Right.png', '_blank'); return false;" class="file-link me-2">Right.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Views/Right.png', 'Right.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Views/Right.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">63.5 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark-image file-icon"></i>
+                        <a style="cursor: pointer;" onclick="previewImage('hardware/resources/img/Views/Front.png', 'Front.png')" title="Click para vista previa - Ctrl+Click para abrir en nueva pestaña" oncontextmenu="window.open('hardware/resources/img/Views/Front.png', '_blank'); return false;" class="file-link me-2">Front.png</a>
+                        <span class="badge bg-success type-badge me-2">image</span>
+                        
+                    <small class="ms-2">
+                        <a href="#" onclick="previewImage('hardware/resources/img/Views/Front.png', 'Front.png')" title="Vista previa">ver</a> |
+                        <a href="hardware/resources/img/Views/Front.png" target="_blank" title="Abrir en nueva pestaña">abrir</a>
+                    </small>
+                    
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">38.6 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+                
+                <div class="tree-item">
+                    <div class="d-flex align-items-center file-item" style="cursor: pointer;" onclick="toggleFolder(this)">
+                        <i class="bi bi-chevron-down folder-toggle"></i>
+                        <i class="bi bi-folder-fill folder-icon file-icon"></i>
+                        <strong>mechanics</strong>
+                    </div>
+                    <div id="mechanics" class="ms-3">
+                
+                <div class="tree-item">
+                    <div class="d-flex align-items-center file-item" style="cursor: pointer;" onclick="toggleFolder(this)">
+                        <i class="bi bi-chevron-down folder-toggle"></i>
+                        <i class="bi bi-folder-fill folder-icon file-icon"></i>
+                        <strong>BodyParts</strong>
+                    </div>
+                    <div id="mechanics_BodyParts" class="ms-3">
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/LowerBody.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">LowerBody.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">303.5 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/Leg3.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">Leg3.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">157.4 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/HeadBack.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">HeadBack.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">221.5 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/Ear2.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">Ear2.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">51.9 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/UpperBody.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">UpperBody.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">382.2 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/ComponentsBase.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">ComponentsBase.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">217.5 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/Leg1.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">Leg1.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">157.4 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/Ear1.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">Ear1.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">51.9 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/Leg4.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">Leg4.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">157.4 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/Leg2.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">Leg2.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">157.4 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/BodyParts/HeadFront.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">HeadFront.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">264.1 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+                
+                <div class="tree-item">
+                    <div class="d-flex align-items-center file-item" style="cursor: pointer;" onclick="toggleFolder(this)">
+                        <i class="bi bi-chevron-down folder-toggle"></i>
+                        <i class="bi bi-folder-fill folder-icon file-icon"></i>
+                        <strong>WholeBody</strong>
+                    </div>
+                    <div id="mechanics_WholeBody" class="ms-3">
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/WholeBody/PulsarPetRobot.stl" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">PulsarPetRobot.stl</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">2.1 MB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/WholeBody/PulsarPetRobot.glb" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">PulsarPetRobot.glb</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">4.5 MB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+                
+                <div class="tree-item">
+                    <div class="d-flex align-items-center file-item" style="cursor: pointer;" onclick="toggleFolder(this)">
+                        <i class="bi bi-chevron-down folder-toggle"></i>
+                        <i class="bi bi-folder-fill folder-icon file-icon"></i>
+                        <strong>PrintingFile</strong>
+                    </div>
+                    <div id="mechanics_PrintingFile" class="ms-3">
+                
+                <div class="d-flex align-items-center justify-content-between file-item">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <i class="bi bi-file-earmark file-icon"></i>
+                        <a href="hardware/mechanics/PrintingFile/PulsarPetRobot.3mf" target="_blank" title="Abrir archivo en nueva pestaña" class="file-link me-2">PulsarPetRobot.3mf</a>
+                        <span class="badge bg-secondary type-badge me-2">other</span>
+                        
+                    </div>
+                    <div class="text-end ms-3">
+                        <small class="file-size d-block">594.9 KB</small>
+                        <small class="file-date">2026-05-21 00:35:46</small>
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+                
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Emotions -->
-    <div class="section">
-      <div class="section-label">Emociones</div>
-      <div class="cmd-grid cmd-grid-5">
-        <button class="cmd-btn e-happy"    onclick="sendCommand('happy')"     disabled><span class="icon">😊</span>Happy</button>
-        <button class="cmd-btn e-sleepy"   onclick="sendCommand('sleepy')"    disabled><span class="icon">😴</span>Sleepy</button>
-        <button class="cmd-btn e-surprised"onclick="sendCommand('surprised')" disabled><span class="icon">😲</span>Wow</button>
-        <button class="cmd-btn e-wink"     onclick="sendCommand('wink')"      disabled><span class="icon">😉</span>Wink</button>
-        <button class="cmd-btn e-angry"    onclick="sendCommand('angry')"     disabled><span class="icon">😠</span>Angry</button>
-      </div>
+    <!-- Modal para previsualizar imágenes -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Vista Previa de Imagen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" alt="Vista previa" class="img-fluid">
+                </div>
+                <div class="modal-footer">
+                    <a id="imageDirectLink" href="" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-up-right"></i> Abrir en nueva pestaña
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Actions -->
-    <div class="section">
-      <div class="section-label">Acciones</div>
-      <div class="cmd-grid cmd-grid-3">
-        <button class="cmd-btn a-standup" onclick="sendCommand('standup')" disabled><span class="icon">📍</span>Stand</button>
-        <button class="cmd-btn a-sit"     onclick="sendCommand('sit')"     disabled><span class="icon">🪑</span>Sit</button>
-        <button class="cmd-btn a-sleep"   onclick="sendCommand('sleep')"   disabled><span class="icon">🛏️</span>Sleep</button>
-        <button class="cmd-btn a-wave"    onclick="sendCommand('wave')"    disabled><span class="icon">👋</span>Wave</button>
-        <button class="cmd-btn a-walk"    onclick="sendCommand('walk')"    disabled><span class="icon">🚶</span>Walk</button>
-        <button class="cmd-btn a-stop"    onclick="sendCommand('stop')"    disabled><span class="icon">⏹</span>Stop</button>
-      </div>
+    <!-- Modal para previsualizar PDFs -->
+    <div class="modal fade" id="pdfModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfModalLabel">Vista Previa de PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="pdfViewer" class="pdf-viewer" src=""></iframe>
+                </div>
+                <div class="modal-footer">
+                    <a id="pdfDirectLink" href="" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-up-right"></i> Abrir en nueva pestaña
+                    </a>
+                    <a id="pdfDownloadLink" href="" download class="btn btn-secondary">
+                        <i class="bi bi-download"></i> Descargar
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Log -->
-    <div class="section">
-      <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
-        Log
-        <button class="log-clear" onclick="clearLog()">Limpiar</button>
-      </div>
-      <div id="log-box" class="log-box">
-        <div class="log-line info">Esperando conexion BLE...</div>
-      </div>
-    </div>
-
-    <!-- UUIDs -->
-    <div class="section">
-      <div class="section-label">Informacion BLE</div>
-      <div class="uuid-row">
-        <div class="uuid-label">Service UUID</div>
-        <div class="uuid-val">4fafc201-1fb5-459e-8fcc-c5c9c331914b</div>
-      </div>
-      <div class="uuid-row">
-        <div class="uuid-label">Characteristic UUID</div>
-        <div class="uuid-val">beb5483e-36e1-4688-b7f5-ea07361b26a8</div>
-      </div>
-    </div>
-
-  </main>
-
-  <button id="install-pwa-btn" class="install-cta hidden" type="button">Instalar app</button>
-
-  <script src="script-pulsar-c6-ble.js"></script>
-  <script>
-    const connectBtn    = document.getElementById('connect-btn');
-    const disconnectBtn = document.getElementById('disconnect-btn');
-    const statusDot     = document.getElementById('status-dot');
-    const connLabel     = document.getElementById('conn-label');
-    const deviceNameEl  = document.getElementById('device-name');
-    const deviceNameRow = document.getElementById('device-name-row');
-    const logBox        = document.getElementById('log-box');
-    const currentEmotion = document.getElementById('current-emotion');
-    const currentAction  = document.getElementById('current-action');
-    const allCmdBtns     = document.querySelectorAll('.cmd-btn');
-    const installPwaBtn  = document.getElementById('install-pwa-btn');
-    const connectSection = document.getElementById('connect-section');
-    const hamburgerBtn = document.getElementById('hamburger-btn');
-    const hamburgerMenu = document.getElementById('hamburger-menu');
-    const menuDisconnectBtn = document.getElementById('menu-disconnect-btn');
-    const menuDeviceName = document.getElementById('menu-device-name');
-
-    let robot = null;
-    let lastEmotionBtn = null;
-    let lastActionBtn  = null;
-    let deferredInstallPrompt = null;
-    let installMode = 'none';
-    const SW_VERSION = 'v4';
-
-    // ---- LOG ----
-    function addLog(msg, type = 'info') {
-      const el = document.createElement('div');
-      el.className = `log-line ${type}`;
-      const t = new Date().toLocaleTimeString('es-ES', { hour12: false });
-      el.textContent = `[${t}] ${msg}`;
-      logBox.appendChild(el);
-      logBox.scrollTop = logBox.scrollHeight;
-      const lines = logBox.querySelectorAll('.log-line');
-      if (lines.length > 60) lines[0].remove();
-    }
-
-    function clearLog() {
-      logBox.innerHTML = '<div class="log-line info">Log limpiado</div>';
-    }
-
-    // ---- UI STATE ----
-    function setConnected(connected, deviceName) {
-      const mobile = window.matchMedia('(max-width: 768px)').matches;
-
-      if (connected) {
-        statusDot.className = 'dot dot-on';
-        connLabel.textContent = 'Online';
-        connectBtn.classList.add('hidden');
-        disconnectBtn.classList.remove('hidden');
-        if (deviceName) {
-          deviceNameEl.textContent = deviceName;
-          deviceNameRow.classList.remove('hidden');
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Función para mostrar vista previa de imágenes
+        function previewImage(src, title) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('imageModalLabel').textContent = title;
+            document.getElementById('imageDirectLink').href = src;
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
         }
-        allCmdBtns.forEach(b => b.disabled = false);
-        menuDisconnectBtn.classList.remove('hidden');
-        menuDeviceName.textContent = deviceName ? `Dispositivo: ${deviceName}` : 'Dispositivo conectado';
-        if (mobile) connectSection.classList.add('compact-hide');
-      } else {
-        statusDot.className = 'dot dot-off';
-        connLabel.textContent = 'Offline';
-        connectBtn.classList.remove('hidden');
-        disconnectBtn.classList.add('hidden');
-        deviceNameRow.classList.add('hidden');
-        allCmdBtns.forEach(b => { b.disabled = true; b.classList.remove('active-cmd'); });
-        currentEmotion.textContent = '---';
-        currentAction.textContent  = '---';
-        lastEmotionBtn = null;
-        lastActionBtn  = null;
-        menuDisconnectBtn.classList.add('hidden');
-        menuDeviceName.textContent = 'Sin dispositivo conectado';
-        connectSection.classList.remove('compact-hide');
-      }
-    }
 
-    function toggleMenu() {
-      hamburgerMenu.classList.toggle('hidden');
-    }
+        // Función para mostrar vista previa de PDFs
+        function previewPDF(src, title) {
+            document.getElementById('pdfViewer').src = src;
+            document.getElementById('pdfModalLabel').textContent = title;
+            document.getElementById('pdfDirectLink').href = src;
+            document.getElementById('pdfDownloadLink').href = src;
+            new bootstrap.Modal(document.getElementById('pdfModal')).show();
+        }
 
-    function closeMenu() {
-      hamburgerMenu.classList.add('hidden');
-    }
+        // Función para alternar carpetas
+        function toggleFolder(element) {
+            const content = element.nextElementSibling;
+            const icon = element.querySelector('.folder-toggle');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.classList.remove('bi-chevron-right');
+                icon.classList.add('bi-chevron-down');
+            } else {
+                content.style.display = 'none';
+                icon.classList.remove('bi-chevron-down');
+                icon.classList.add('bi-chevron-right');
+            }
+        }
 
-    window.addEventListener('resize', () => {
-      if (!window.matchMedia('(max-width: 768px)').matches) {
-        connectSection.classList.remove('compact-hide');
-        closeMenu();
-      } else if (robot && robot.isConnected) {
-        connectSection.classList.add('compact-hide');
-      }
-    });
+        // Función para abrir archivo en nueva pestaña
+        function openInNewTab(url) {
+            window.open(url, '_blank');
+        }
 
-    // ---- BLE ----
-    async function connectBLE() {
-      connectBtn.disabled = true;
-      connectBtn.textContent = 'Conectando...';
-      addLog('Buscando dispositivo BLE...', 'info');
-      const ok = await robot.connect();
-      connectBtn.disabled = false;
-      connectBtn.textContent = 'Conectar';
-      if (ok) {
-        const s = robot.getStatus();
-        setConnected(true, s.deviceName || 'Pulsar C6');
-        addLog('Conexion exitosa', 'ok');
-      } else {
-        addLog('Error al conectar', 'err');
-      }
-    }
-
-    function disconnectBLE() {
-      robot.disconnect();
-      setConnected(false);
-      addLog('Desconectado', 'warn');
-    }
-
-    async function sendCommand(cmd) {
-      if (!robot.isConnected) { addLog('Sin conexion', 'err'); return; }
-      const ok = await robot.sendCommand(cmd);
-      if (!ok) { addLog(`Fallo: ${cmd}`, 'err'); return; }
-
-      if (PulsarC6BLE.isEmotion(cmd)) {
-        currentEmotion.textContent = cmd;
-        if (lastEmotionBtn) lastEmotionBtn.classList.remove('active-cmd');
-        const btn = [...allCmdBtns].find(b => b.onclick?.toString().includes(`'${cmd}'`));
-        if (btn) { btn.classList.add('active-cmd'); lastEmotionBtn = btn; }
-        addLog(`Emocion: ${cmd}`, 'ok');
-      }
-      if (PulsarC6BLE.isAction(cmd)) {
-        currentAction.textContent = cmd;
-        if (lastActionBtn) lastActionBtn.classList.remove('active-cmd');
-        const btn = [...allCmdBtns].find(b => b.onclick?.toString().includes(`'${cmd}'`));
-        if (btn) { btn.classList.add('active-cmd'); lastActionBtn = btn; }
-        addLog(`Accion: ${cmd}`, 'ok');
-      }
-    }
-
-    // ---- EVENTS ----
-    connectBtn.addEventListener('click', connectBLE);
-    disconnectBtn.addEventListener('click', disconnectBLE);
-    hamburgerBtn.addEventListener('click', toggleMenu);
-    menuDisconnectBtn.addEventListener('click', () => {
-      disconnectBLE();
-      closeMenu();
-    });
-    document.addEventListener('click', (event) => {
-      if (hamburgerMenu.classList.contains('hidden')) return;
-      const clickInside = hamburgerMenu.contains(event.target) || hamburgerBtn.contains(event.target);
-      if (!clickInside) closeMenu();
-    });
-
-    window.addEventListener('beforeinstallprompt', (event) => {
-      event.preventDefault();
-      deferredInstallPrompt = event;
-      installMode = 'prompt';
-      installPwaBtn.classList.remove('hidden');
-      addLog('Puedes instalar la app desde el boton "Instalar app"', 'info');
-    });
-
-    installPwaBtn.addEventListener('click', async () => {
-      if (installMode === 'ios') {
-        addLog('iPhone: pulsa Compartir y luego "Agregar a inicio"', 'info');
-        return;
-      }
-
-      if (!deferredInstallPrompt) {
-        addLog('Instalacion no disponible aun en este navegador', 'warn');
-        return;
-      }
-
-      deferredInstallPrompt.prompt();
-      const choice = await deferredInstallPrompt.userChoice;
-      if (choice && choice.outcome === 'accepted') {
-        addLog('Instalacion aceptada', 'ok');
-      } else {
-        addLog('Instalacion cancelada', 'warn');
-      }
-      deferredInstallPrompt = null;
-      installPwaBtn.classList.add('hidden');
-    });
-
-    window.addEventListener('appinstalled', () => {
-      installPwaBtn.classList.add('hidden');
-      addLog('App instalada correctamente', 'ok');
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      robot = new PulsarC6BLE({
-        onLog: msg => addLog(msg, 'info'),
-        onConnected: () => { setConnected(true, robot.getStatus().deviceName || 'Pulsar C6'); },
-        onDisconnected: () => { setConnected(false); addLog('Dispositivo desconectado', 'warn'); },
-        onError: msg => addLog(msg, 'err')
-      });
-      setConnected(false);
-      addLog('Pagina lista. Toca "Conectar" para empezar.', 'info');
-
-      // Registrar Service Worker (PWA)
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register(`./sw.js?${SW_VERSION}`)
-          .then((reg) => {
-            reg.update();
-            addLog('PWA lista para uso offline', 'info');
-          })
-          .catch(() => {});
-      }
-
-      // iOS Safari no dispara beforeinstallprompt; mostrar guia breve.
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-      const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-      if (isIOS && !isStandalone) {
-        installMode = 'ios';
-        installPwaBtn.classList.remove('hidden');
-        addLog('En iPhone: Compartir -> "Agregar a inicio" para instalar', 'info');
-      }
-
-      if (!window.isSecureContext) {
-        addLog('Instalacion PWA requiere HTTPS (o localhost)', 'warn');
-      }
-    });
-  </script>
+        // Manejar clicks con Ctrl para abrir en nueva pestaña
+        document.addEventListener('click', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                const link = e.target.closest('a[onclick*="previewImage"]');
+                if (link) {
+                    e.preventDefault();
+                    const src = link.getAttribute('onclick').match(/'([^']+)'/)[1];
+                    window.open(src, '_blank');
+                }
+            }
+        });
+    </script>
 </body>
 </html>
+    
